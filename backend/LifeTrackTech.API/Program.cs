@@ -87,9 +87,9 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// TODO: Add Database Context
-// builder.Services.AddDbContext<ApplicationDbContext>(options =>
-//     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+// Add Database Context
+builder.Services.AddDbContext<LifeTrackTech.Infrastructure.Data.ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // TODO: Add AutoMapper
 // builder.Services.AddAutoMapper(typeof(Program));
