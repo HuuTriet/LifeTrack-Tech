@@ -1,0 +1,13 @@
+*.swp
+*.*~
+bin/
+obj/
+.vs/
+node_modules/
+.env
+*.user
+*.suo
+appsettings.Development.json
+build/
+dist/
+.DS_Store

@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LifeTrack Tech - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #2E5C7F;
+            --secondary-blue: #4A8FB8;
+            --accent-orange: #E88D5D;
+            --warm-peach: #F4C8A6;
+            --bg-cream: #FAF8F5;
+            --bg-white: #FFFFFF;
+            --text-dark: #2C3E50;
+            --text-muted: #7A8B99;
+            --success-green: #52B788;
+            --warning-amber: #F4A261;
+            --danger-red: #E76F51;
+            --shadow-soft: 0 4px 20px rgba(46, 92, 127, 0.08);
+            --shadow-card: 0 2px 12px rgba(46, 92, 127, 0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Public Sans', sans-serif;
+            background: linear-gradient(135deg, var(--bg-cream) 0%, #FEFDFB 100%);
+            color: var(--text-dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Background decorative elements */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            right: -30%;
+            width: 70%;
+            height: 70%;
+            background: radial-gradient(circle, rgba(74, 143, 184, 0.06) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: 0;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -40%;
+            left: -20%;
+            width: 60%;
+            height: 60%;
+            background: radial-gradient(circle, rgba(232, 141, 93, 0.05) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: 0;
+            animation: float 25s ease-in-out infinite reverse;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-30px, -30px) scale(1.05); }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        header {
+            background: var(--bg-white);
+            padding: 1.5rem 2rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow-soft);
+            margin-bottom: 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slideDown 0.6s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Crimson Text', serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: white;
+            box-shadow: 0 4px 12px rgba(46, 92, 127, 0.25);
+        }
+
+        h1 {
+            font-family: 'Crimson Text', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            letter-spacing: -0.5px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1.25rem;
+            background: linear-gradient(135deg, var(--warm-peach) 0%, var(--accent-orange) 100%);
+            border-radius: 50px;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 2px 8px rgba(232, 141, 93, 0.3);
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-orange);
+            font-weight: 600;
+        }
+
+        /* Welcome Banner */
+        .welcome-banner {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+            padding: 2.5rem;
+            border-radius: 24px;
+            color: white;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.6s ease-out 0.2s backwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .welcome-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .welcome-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .welcome-banner h2 {
+            font-family: 'Crimson Text', serif;
+            font-size: 2.25rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.5px;
+        }
+
+        .welcome-banner p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+            font-weight: 300;
+        }
+
+        .date-time {
+            margin-top: 1rem;
+            font-size: 0.95rem;
+            opacity: 0.85;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background: var(--bg-white);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow-card);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: fadeInUp 0.6s ease-out backwards;
+        }
+
+        .stat-card:nth-child(1) { animation-delay: 0.3s; }
+        .stat-card:nth-child(2) { animation-delay: 0.4s; }
+        .stat-card:nth-child(3) { animation-delay: 0.5s; }
+        .stat-card:nth-child(4) { animation-delay: 0.6s; }
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 32px rgba(46, 92, 127, 0.15);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: var(--accent-color);
+            opacity: 0.08;
+            border-radius: 50%;
+            transform: translate(30%, -30%);
+        }
+
+        .stat-icon {
+            width: 56px;
+            height: 56px;
+            background: var(--icon-bg);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 4px 12px var(--icon-shadow);
+        }
+
+        .stat-content h3 {
+            font-family: 'Crimson Text', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-content p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .stat-trend {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            margin-top: 0.75rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .trend-up {
+            background: rgba(82, 183, 136, 0.1);
+            color: var(--success-green);
+        }
+
+        .trend-down {
+            background: rgba(231, 111, 81, 0.1);
+            color: var(--danger-red);
+        }
+
+        /* Main Content Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Medication Card */
+        .medication-card {
+            background: var(--bg-white);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow-card);
+            animation: fadeInUp 0.6s ease-out 0.7s backwards;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.75rem;
+        }
+
+        .card-title {
+            font-family: 'Crimson Text', serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .view-all-btn {
+            background: transparent;
+            border: 2px solid var(--secondary-blue);
+            color: var(--secondary-blue);
+            padding: 0.5rem 1.25rem;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .view-all-btn:hover {
+            background: var(--secondary-blue);
+            color: white;
+            transform: translateX(4px);
+        }
+
+        .medication-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .medication-item {
+            padding: 1.25rem;
+            background: linear-gradient(135deg, #F8FAFB 0%, #FFFFFF 100%);
+            border-radius: 14px;
+            border-left: 4px solid var(--item-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .medication-item:hover {
+            transform: translateX(6px);
+            box-shadow: var(--shadow-card);
+        }
+
+        .med-info {
+            flex: 1;
+        }
+
+        .med-name {
+            font-weight: 600;
+            color: var(--text-dark);
+            font-size: 1.05rem;
+            margin-bottom: 0.35rem;
+        }
+
+        .med-details {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .med-time {
+            background: var(--time-bg);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            color: var(--time-color);
+            font-weight: 600;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        /* Alerts Card */
+        .alerts-card {
+            background: var(--bg-white);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow-card);
+            animation: fadeInUp 0.6s ease-out 0.8s backwards;
+        }
+
+        .alert-item {
+            padding: 1.25rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+            border-left: 4px solid var(--alert-color);
+            background: var(--alert-bg);
+            transition: all 0.3s ease;
+        }
+
+        .alert-item:hover {
+            transform: translateX(6px);
+            box-shadow: var(--shadow-card);
+        }
+
+        .alert-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            background: var(--alert-icon-bg);
+            flex-shrink: 0;
+        }
+
+        .alert-content h4 {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.35rem;
+            font-size: 1rem;
+        }
+
+        .alert-content p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* Health Metrics */
+        .health-metrics {
+            background: var(--bg-white);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow-card);
+            animation: fadeInUp 0.6s ease-out 0.9s backwards;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.25rem;
+            margin-top: 1.5rem;
+        }
+
+        .metric-item {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, var(--metric-bg) 0%, var(--metric-bg-end) 100%);
+            border-radius: 14px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .metric-item:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-card);
+        }
+
+        .metric-icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .metric-value {
+            font-family: 'Crimson Text', serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 0.25rem;
+        }
+
+        .metric-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .metric-status {
+            display: inline-block;
+            margin-top: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-normal {
+            background: rgba(82, 183, 136, 0.1);
+            color: var(--success-green);
+        }
+
+        .status-warning {
+            background: rgba(244, 162, 97, 0.1);
+            color: var(--warning-amber);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .welcome-banner h2 {
+                font-size: 1.75rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-section">
+                <div class="logo">LT</div>
+                <h1>LifeTrack Tech</h1>
+            </div>
+            <div class="header-actions">
+                <div class="user-info">
+                    <div class="user-avatar">NT</div>
+                    <span>Nguyễn Thị Mai</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="welcome-banner">
+            <div class="welcome-content">
+                <h2>Xin chào, Bà Mai! 👋</h2>
+                <p>Hôm nay là một ngày tuyệt vời để chăm sóc sức khỏe của bạn</p>
+                <div class="date-time" id="currentDateTime"></div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card" style="--accent-color: var(--success-green); --icon-bg: rgba(82, 183, 136, 0.1); --icon-shadow: rgba(82, 183, 136, 0.2);">
+                <div class="stat-icon" style="color: var(--success-green);">💊</div>
+                <div class="stat-content">
+                    <h3>5/6</h3>
+                    <p>Thuốc đã uống hôm nay</p>
+                    <span class="stat-trend trend-up">↑ 83% tuân thủ</span>
+                </div>
+            </div>
+
+            <div class="stat-card" style="--accent-color: var(--warning-amber); --icon-bg: rgba(244, 162, 97, 0.1); --icon-shadow: rgba(244, 162, 97, 0.2);">
+                <div class="stat-icon" style="color: var(--warning-amber);">⚠️</div>
+                <div class="stat-content">
+                    <h3>2</h3>
+                    <p>Cảnh báo tương tác thuốc</p>
+                    <span class="stat-trend trend-down">Cần xem xét</span>
+                </div>
+            </div>
+
+            <div class="stat-card" style="--accent-color: var(--secondary-blue); --icon-bg: rgba(74, 143, 184, 0.1); --icon-shadow: rgba(74, 143, 184, 0.2);">
+                <div class="stat-icon" style="color: var(--secondary-blue);">❤️</div>
+                <div class="stat-content">
+                    <h3>128/82</h3>
+                    <p>Huyết áp (mmHg)</p>
+                    <span class="stat-trend trend-up">Bình thường</span>
+                </div>
+            </div>
+
+            <div class="stat-card" style="--accent-color: var(--accent-orange); --icon-bg: rgba(232, 141, 93, 0.1); --icon-shadow: rgba(232, 141, 93, 0.2);">
+                <div class="stat-icon" style="color: var(--accent-orange);">😊</div>
+                <div class="stat-content">
+                    <h3>8.5</h3>
+                    <p>Điểm sức khỏe tinh thần</p>
+                    <span class="stat-trend trend-up">↑ Cải thiện</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <div class="medication-card">
+                <div class="card-header">
+                    <h2 class="card-title">Lịch uống thuốc hôm nay</h2>
+                    <button class="view-all-btn">Xem tất cả →</button>
+                </div>
+                <div class="medication-list">
+                    <div class="medication-item" style="--item-color: var(--success-green); --time-bg: rgba(82, 183, 136, 0.1); --time-color: var(--success-green);">
+                        <div class="med-info">
+                            <div class="med-name">✓ Metformin 500mg</div>
+                            <div class="med-details">Sau bữa sáng • Đã uống lúc 8:30</div>
+                        </div>
+                        <div class="med-time">Hoàn thành</div>
+                    </div>
+
+                    <div class="medication-item" style="--item-color: var(--warning-amber); --time-bg: rgba(244, 162, 97, 0.1); --time-color: var(--warning-amber);">
+                        <div class="med-info">
+                            <div class="med-name">Aspirin 100mg</div>
+                            <div class="med-details">Sau bữa trưa • Nhắc nhở trong 15 phút</div>
+                        </div>
+                        <div class="med-time">12:00</div>
+                    </div>
+
+                    <div class="medication-item" style="--item-color: var(--secondary-blue); --time-bg: rgba(74, 143, 184, 0.1); --time-color: var(--secondary-blue);">
+                        <div class="med-info">
+                            <div class="med-name">Lisinopril 10mg</div>
+                            <div class="med-details">Buổi tối • Trước khi ngủ</div>
+                        </div>
+                        <div class="med-time">21:00</div>
+                    </div>
+
+                    <div class="medication-item" style="--item-color: var(--danger-red); --time-bg: rgba(231, 111, 81, 0.1); --time-color: var(--danger-red);">
+                        <div class="med-info">
+                            <div class="med-name">⚠️ Simvastatin 20mg</div>
+                            <div class="med-details">Trước bữa tối • Cảnh báo: Tương tác với Aspirin</div>
+                        </div>
+                        <div class="med-time">18:00</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alerts-card">
+                <div class="card-header">
+                    <h2 class="card-title">Cảnh báo & Nhắc nhở</h2>
+                </div>
+
+                <div class="alert-item" style="--alert-color: var(--danger-red); --alert-bg: rgba(231, 111, 81, 0.05); --alert-icon-bg: rgba(231, 111, 81, 0.1);">
+                    <div class="alert-icon" style="color: var(--danger-red);">⚠️</div>
+                    <div class="alert-content">
+                        <h4>Tương tác thuốc quan trọng</h4>
+                        <p>Aspirin và Simvastatin có thể tăng nguy cơ tác dụng phụ. Tham khảo bác sĩ.</p>
+                    </div>
+                </div>
+
+                <div class="alert-item" style="--alert-color: var(--warning-amber); --alert-bg: rgba(244, 162, 97, 0.05); --alert-icon-bg: rgba(244, 162, 97, 0.1);">
+                    <div class="alert-icon" style="color: var(--warning-amber);">💊</div>
+                    <div class="alert-content">
+                        <h4>Sắp hết thuốc</h4>
+                        <p>Metformin còn 3 ngày. Đặt mua thuốc mới hoặc liên hệ hiệu thuốc.</p>
+                    </div>
+                </div>
+
+                <div class="alert-item" style="--alert-color: var(--secondary-blue); --alert-bg: rgba(74, 143, 184, 0.05); --alert-icon-bg: rgba(74, 143, 184, 0.1);">
+                    <div class="alert-icon" style="color: var(--secondary-blue);">📅</div>
+                    <div class="alert-content">
+                        <h4>Khám định kỳ</h4>
+                        <p>Lịch tái khám tim mạch vào 25/01/2026 lúc 9:00 tại Bệnh viện Đa khoa.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="health-metrics">
+            <div class="card-header">
+                <h2 class="card-title">Chỉ số sức khỏe hôm nay</h2>
+                <button class="view-all-btn">Chi tiết →</button>
+            </div>
+            <div class="metrics-grid">
+                <div class="metric-item" style="--metric-bg: rgba(82, 183, 136, 0.05); --metric-bg-end: rgba(82, 183, 136, 0.02);">
+                    <div class="metric-icon">❤️</div>
+                    <div class="metric-value">72</div>
+                    <div class="metric-label">Nhịp tim (BPM)</div>
+                    <span class="metric-status status-normal">Bình thường</span>
+                </div>
+
+                <div class="metric-item" style="--metric-bg: rgba(244, 162, 97, 0.05); --metric-bg-end: rgba(244, 162, 97, 0.02);">
+                    <div class="metric-icon">🌡️</div>
+                    <div class="metric-value">36.7°C</div>
+                    <div class="metric-label">Nhiệt độ</div>
+                    <span class="metric-status status-normal">Bình thường</span>
+                </div>
+
+                <div class="metric-item" style="--metric-bg: rgba(74, 143, 184, 0.05); --metric-bg-end: rgba(74, 143, 184, 0.02);">
+                    <div class="metric-icon">💧</div>
+                    <div class="metric-value">96%</div>
+                    <div class="metric-label">SpO2</div>
+                    <span class="metric-status status-normal">Tốt</span>
+                </div>
+
+                <div class="metric-item" style="--metric-bg: rgba(232, 141, 93, 0.05); --metric-bg-end: rgba(232, 141, 93, 0.02);">
+                    <div class="metric-icon">🚶</div>
+                    <div class="metric-value">3,245</div>
+                    <div class="metric-label">Số bước chân</div>
+                    <span class="metric-status status-warning">Cần cải thiện</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Update date and time
+        function updateDateTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            document.getElementById('currentDateTime').textContent = 
+                now.toLocaleDateString('vi-VN', options);
+        }
+
+        updateDateTime();
+        setInterval(updateDateTime, 60000); // Update every minute
+    </script>
+</body>
+</html>

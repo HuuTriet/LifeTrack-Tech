@@ -1,0 +1,32 @@
+{
+  "name": "lifetrack-tech-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.20.1",
+    "typescript": "^5.3.3",
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.18",
+    "axios": "^1.6.2",
+    "recharts": "^2.10.3",
+    "@mui/material": "^5.15.0",
+    "@mui/icons-material": "^5.15.0",
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "react-hook-form": "^7.49.2",
+    "zod": "^3.22.4",
+    "@hookform/resolvers": "^3.3.3",
+    "zustand": "^4.4.7"
+  },
+  "devDependencies": {
+    "react-scripts": "5.0.1",
+    "@testing-library/react": "^13.4.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test"
+  }
+}

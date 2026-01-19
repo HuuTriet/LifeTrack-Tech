@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LifeTrack Tech - Theo dõi Sức khỏe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-blue: #2E5C7F;
+            --secondary-blue: #4A8FB8;
+            --accent-orange: #E88D5D;
+            --warm-peach: #F4C8A6;
+            --bg-cream: #FAF8F5;
+            --bg-white: #FFFFFF;
+            --text-dark: #2C3E50;
+            --text-muted: #7A8B99;
+            --success-green: #52B788;
+            --warning-amber: #F4A261;
+            --danger-red: #E76F51;
+            --purple-accent: #9D4EDD;
+            --shadow-soft: 0 4px 20px rgba(46, 92, 127, 0.08);
+            --shadow-card: 0 2px 12px rgba(46, 92, 127, 0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Public Sans', sans-serif;
+            background: linear-gradient(135deg, var(--bg-cream) 0%, #FEFDFB 100%);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        header {
+            background: var(--bg-white);
+            padding: 1.5rem 2rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow-soft);
+            margin-bottom: 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Crimson Text', serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: white;
+            box-shadow: 0 4px 12px rgba(46, 92, 127, 0.25);
+        }
+
+        h1 {
+            font-family: 'Crimson Text', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .nav-link {
+            padding: 0.5rem 1.25rem;
+            border-radius: 25px;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: var(--secondary-blue);
+            color: white;
+        }
+
+        /* Page Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-family: 'Crimson Text', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .date-filter {
+            display: flex;
+            gap: 0.75rem;
+            background: var(--bg-white);
+            padding: 0.5rem;
+            border-radius: 25px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1.25rem;
+            border: none;
+            background: transparent;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn.active {
+            background: var(--secondary-blue);
+            color: white;
+        }
+
+        /* Quick Stats */
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .quick-stat {
+            background: var(--bg-white);
+            padding: 1.75rem;
+            border-radius: 16px;
+            box-shadow: var(--shadow-card);
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quick-stat::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--stat-color);
+        }
+
+        .quick-stat:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(46, 92, 127, 0.12);
+        }
+
+        .stat-icon-big {
+            font-size: 2.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .stat-value-big {
+            font-family: 'Crimson Text', serif;
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 0.35rem;
+        }
+
+        .stat-label-big {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .stat-change {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+        }
+
+        .change-positive {
+            background: rgba(82, 183, 136, 0.1);
+            color: var(--success-green);
+        }
+
+        .change-negative {
+            background: rgba(231, 111, 81, 0.1);
+            color: var(--danger-red);
+        }
+
+        /* Charts Section */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-card {
+            background: var(--bg-white);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.75rem;
+        }
+
+        .chart-title {
+            font-family: 'Crimson Text', serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .chart-subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-top: 0.35rem;
+        }
+
+        .chart-legend {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        /* Mental Health Section */
+        .mental-health-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .mental-card {
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+            padding: 2rem;
+            border-radius: 20px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mental-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .mental-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .mental-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .mental-title {
+            font-family: 'Crimson Text', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+
+        .mental-score {
+            font-size: 3rem;
+            font-weight: 700;
+            font-family: 'Crimson Text', serif;
+            margin-bottom: 0.5rem;
+        }
+
+        .mental-description {
+            opacity: 0.95;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        /* Activity Timeline */
+        .activity-timeline {
+            background: var(--bg-white);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .timeline-item {
+            display: flex;
+            gap: 1.25rem;
+            padding: 1.25rem 0;
+            border-bottom: 1px solid #E5E9ED;
+            position: relative;
+        }
+
+        .timeline-item:last-child {
+            border-bottom: none;
+        }
+
+        .timeline-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .timeline-content {
+            flex: 1;
+        }
+
+        .timeline-time {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .timeline-title {
+            font-weight: 700;
+            color: var(--text-dark);
+            margin: 0.35rem 0;
+        }
+
+        .timeline-description {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .timeline-metric {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            padding: 0.35rem 0.85rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            background: rgba(74, 143, 184, 0.1);
+            color: var(--secondary-blue);
+        }
+
+        /* Recommendations */
+        .recommendations {
+            background: var(--bg-white);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow-card);
+            margin-top: 2rem;
+        }
+
+        .recommendation-item {
+            display: flex;
+            gap: 1.25rem;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #F8FAFB 0%, #FFFFFF 100%);
+            border-radius: 14px;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--rec-color);
+            transition: all 0.3s ease;
+        }
+
+        .recommendation-item:hover {
+            transform: translateX(6px);
+            box-shadow: var(--shadow-card);
+        }
+
+        .rec-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            background: var(--rec-bg);
+            flex-shrink: 0;
+        }
+
+        .rec-content h4 {
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+            font-size: 1.05rem;
+        }
+
+        .rec-content p {
+            color: var(--text-muted);
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 768px) {
+            .quick-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .page-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-section">
+                <div class="logo">LT</div>
+                <h1>LifeTrack Tech</h1>
+            </div>
+            <nav class="nav-links">
+                <a href="dashboard.html" class="nav-link">Dashboard</a>
+                <a href="medication.html" class="nav-link">Quản lý Thuốc</a>
+                <a href="health.html" class="nav-link active">Sức khỏe</a>
+                <a href="#" class="nav-link">Báo cáo</a>
+            </nav>
+        </header>
+
+        <div class="page-header">
+            <div>
+                <h2 class="page-title">Theo dõi Sức khỏe 📊</h2>
+                <p style="color: var(--text-muted); margin-top: 0.5rem;">Phân tích và đánh giá sức khỏe toàn diện</p>
+            </div>
+            <div class="date-filter">
+                <button class="filter-btn">Hôm nay</button>
+                <button class="filter-btn">7 ngày</button>
+                <button class="filter-btn active">30 ngày</button>
+                <button class="filter-btn">3 tháng</button>
+            </div>
+        </div>
+
+        <div class="quick-stats">
+            <div class="quick-stat" style="--stat-color: var(--danger-red);">
+                <div class="stat-icon-big">❤️</div>
+                <div class="stat-value-big">72</div>
+                <div class="stat-label-big">Nhịp tim TB</div>
+                <span class="stat-change change-positive">↓ 3 BPM</span>
+            </div>
+
+            <div class="quick-stat" style="--stat-color: var(--secondary-blue);">
+                <div class="stat-icon-big">🩺</div>
+                <div class="stat-value-big">125/80</div>
+                <div class="stat-label-big">Huyết áp TB</div>
+                <span class="stat-change change-positive">↓ Cải thiện</span>
+            </div>
+
+            <div class="quick-stat" style="--stat-color: var(--warning-amber);">
+                <div class="stat-icon-big">🌡️</div>
+                <div class="stat-value-big">36.6°C</div>
+                <div class="stat-label-big">Nhiệt độ TB</div>
+                <span class="stat-change change-positive">Ổn định</span>
+            </div>
+
+            <div class="quick-stat" style="--stat-color: var(--success-green);">
+                <div class="stat-icon-big">💧</div>
+                <div class="stat-value-big">97%</div>
+                <div class="stat-label-big">SpO2 TB</div>
+                <span class="stat-change change-positive">↑ Tốt</span>
+            </div>
+
+            <div class="quick-stat" style="--stat-color: var(--purple-accent);">
+                <div class="stat-icon-big">🚶</div>
+                <div class="stat-value-big">4,521</div>
+                <div class="stat-label-big">Bước/ngày TB</div>
+                <span class="stat-change change-negative">↓ 12%</span>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div>
+                        <h3 class="chart-title">Xu hướng Huyết áp</h3>
+                        <p class="chart-subtitle">30 ngày gần nhất</p>
+                    </div>
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: var(--danger-red);"></div>
+                            <span>Tâm thu</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: var(--secondary-blue);"></div>
+                            <span>Tâm trương</span>
+                        </div>
+                    </div>
+                </div>
+                <canvas id="bloodPressureChart" height="80"></canvas>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div>
+                        <h3 class="chart-title">Phân bố Nhịp tim</h3>
+                        <p class="chart-subtitle">Tuần này</p>
+                    </div>
+                </div>
+                <canvas id="heartRateChart" height="120"></canvas>
+            </div>
+        </div>
+
+        <div class="mental-health-grid">
+            <div class="mental-card" style="--gradient-start: #9D4EDD; --gradient-end: #7209B7;">
+                <div class="mental-content">
+                    <div class="mental-icon">😊</div>
+                    <h3 class="mental-title">Sức khỏe Tinh thần</h3>
+                    <div class="mental-score">8.5/10</div>
+                    <p class="mental-description">
+                        Tâm trạng của bạn tốt hơn 15% so với tháng trước. Tiếp tục duy trì các hoạt động tích cực!
+                    </p>
+                </div>
+            </div>
+
+            <div class="mental-card" style="--gradient-start: #06B6D4; --gradient-end: #0891B2;">
+                <div class="mental-content">
+                    <div class="mental-icon">😴</div>
+                    <h3 class="mental-title">Chất lượng Giấc ngủ</h3>
+                    <div class="mental-score">7.2/10</div>
+                    <p class="mental-description">
+                        Bạn đang ngủ trung bình 6.5 giờ/đêm. Nên tăng lên 7-8 giờ để cải thiện sức khỏe.
+                    </p>
+                </div>
+            </div>
+
+            <div class="mental-card" style="--gradient-start: #F59E0B; --gradient-end: #D97706;">
+                <div class="mental-content">
+                    <div class="mental-icon">🧘</div>
+                    <h3 class="mental-title">Mức độ Stress</h3>
+                    <div class="mental-score">3.2/10</div>
+                    <p class="mental-description">
+                        Mức stress thấp và ổn định. Các bài tập thở và thiền định đang mang lại hiệu quả.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="activity-timeline">
+                <div class="chart-header">
+                    <h3 class="chart-title">Hoạt động Hôm nay</h3>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-icon" style="background: rgba(82, 183, 136, 0.1); color: var(--success-green);">
+                        ✓
+                    </div>
+                    <div class="timeline-content">
+                        <div class="timeline-time">08:30</div>
+                        <div class="timeline-title">Uống thuốc Metformin</div>
+                        <div class="timeline-description">Đã hoàn thành đúng giờ sau bữa sáng</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-icon" style="background: rgba(74, 143, 184, 0.1); color: var(--secondary-blue);">
+                        📊
+                    </div>
+                    <div class="timeline-content">
+                        <div class="timeline-time">09:15</div>
+                        <div class="timeline-title">Đo huyết áp</div>
+                        <div class="timeline-description">Kết quả trong ngưỡng bình thường</div>
+                        <span class="timeline-metric">128/82 mmHg</span>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-icon" style="background: rgba(157, 78, 221, 0.1); color: var(--purple-accent);">
+                        🚶
+                    </div>
+                    <div class="timeline-content">
+                        <div class="timeline-time">10:00 - 10:45</div>
+                        <div class="timeline-title">Đi bộ buổi sáng</div>
+                        <div class="timeline-description">Công viên Lê Văn Tám</div>
+                        <span class="timeline-metric">2,450 bước • 35 phút</span>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-icon" style="background: rgba(244, 162, 97, 0.1); color: var(--warning-amber);">
+                        ⏰
+                    </div>
+                    <div class="timeline-content">
+                        <div class="timeline-time">12:00</div>
+                        <div class="timeline-title">Nhắc nhở uống thuốc</div>
+                        <div class="timeline-description">Aspirin 100mg - Sau bữa trưa</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div>
+                        <h3 class="chart-title">Hoạt động Tuần</h3>
+                        <p class="chart-subtitle">Số bước chân</p>
+                    </div>
+                </div>
+                <canvas id="activityChart" height="120"></canvas>
+            </div>
+        </div>
+
+        <div class="recommendations">
+            <div class="chart-header">
+                <h3 class="chart-title">💡 Gợi ý Cải thiện Sức khỏe</h3>
+            </div>
+
+            <div class="recommendation-item" style="--rec-color: var(--success-green); --rec-bg: rgba(82, 183, 136, 0.1);">
+                <div class="rec-icon" style="color: var(--success-green);">🥗</div>
+                <div class="rec-content">
+                    <h4>Chế độ Dinh dưỡng</h4>
+                    <p>Dựa trên huyết áp của bạn, nên giảm muối xuống dưới 5g/ngày và tăng cường rau xanh, trái cây giàu kali như chuối, bơ.</p>
+                </div>
+            </div>
+
+            <div class="recommendation-item" style="--rec-color: var(--purple-accent); --rec-bg: rgba(157, 78, 221, 0.1);">
+                <div class="rec-icon" style="color: var(--purple-accent);">🏃</div>
+                <div class="rec-content">
+                    <h4>Tăng Hoạt động Thể chất</h4>
+                    <p>Số bước chân của bạn giảm 12% tuần này. Mục tiêu: 6,000 bước/ngày. Thử thêm 15 phút đi bộ vào buổi chiều.</p>
+                </div>
+            </div>
+
+            <div class="recommendation-item" style="--rec-color: var(--secondary-blue); --rec-bg: rgba(74, 143, 184, 0.1);">
+                <div class="rec-icon" style="color: var(--secondary-blue);">😴</div>
+                <div class="rec-content">
+                    <h4>Cải thiện Giấc ngủ</h4>
+                    <p>Nên đi ngủ trước 22:00 để đủ 7-8 giờ nghỉ ngơi. Tránh màn hình điện tử 1 giờ trước khi ngủ.</p>
+                </div>
+            </div>
+
+            <div class="recommendation-item" style="--rec-color: var(--warning-amber); --rec-bg: rgba(244, 162, 97, 0.1);">
+                <div class="rec-icon" style="color: var(--warning-amber);">💊</div>
+                <div class="rec-content">
+                    <h4>Tuân thủ Thuốc</h4>
+                    <p>Tỷ lệ tuân thủ uống thuốc của bạn là 83%. Hãy bật nhắc nhở để không bỏ lỡ các liều thuốc quan trọng.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Blood Pressure Chart
+        const bpCtx = document.getElementById('bloodPressureChart').getContext('2d');
+        new Chart(bpCtx, {
+            type: 'line',
+            data: {
+                labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
+                datasets: [{
+                    label: 'Tâm thu',
+                    data: [132, 128, 135, 130, 125, 128, 126, 130, 128, 132, 127, 125, 128, 125],
+                    borderColor: '#E76F51',
+                    backgroundColor: 'rgba(231, 111, 81, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Tâm trương',
+                    data: [85, 82, 88, 84, 80, 82, 81, 84, 82, 85, 80, 79, 82, 80],
+                    borderColor: '#4A8FB8',
+                    backgroundColor: 'rgba(74, 143, 184, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 60,
+                        max: 150
+                    }
+                }
+            }
+        });
+
+        // Heart Rate Distribution
+        const hrCtx = document.getElementById('heartRateChart').getContext('2d');
+        new Chart(hrCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Nghỉ ngơi (60-80)', 'Bình thường (80-100)', 'Hoạt động (100-120)'],
+                datasets: [{
+                    data: [65, 25, 10],
+                    backgroundColor: ['#52B788', '#4A8FB8', '#F4A261']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Activity Chart
+        const actCtx = document.getElementById('activityChart').getContext('2d');
+        new Chart(actCtx, {
+            type: 'bar',
+            data: {
+                labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
+                datasets: [{
+                    label: 'Số bước',
+                    data: [5200, 4800, 6100, 5500, 4200, 3800, 2900],
+                    backgroundColor: '#9D4EDD',
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

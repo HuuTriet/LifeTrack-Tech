@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LifeTrack Tech - Quản lý Thuốc</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:wght@400;600;700&family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #2E5C7F;
+            --secondary-blue: #4A8FB8;
+            --accent-orange: #E88D5D;
+            --warm-peach: #F4C8A6;
+            --bg-cream: #FAF8F5;
+            --bg-white: #FFFFFF;
+            --text-dark: #2C3E50;
+            --text-muted: #7A8B99;
+            --success-green: #52B788;
+            --warning-amber: #F4A261;
+            --danger-red: #E76F51;
+            --shadow-soft: 0 4px 20px rgba(46, 92, 127, 0.08);
+            --shadow-card: 0 2px 12px rgba(46, 92, 127, 0.06);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Public Sans', sans-serif;
+            background: linear-gradient(135deg, var(--bg-cream) 0%, #FEFDFB 100%);
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        header {
+            background: var(--bg-white);
+            padding: 1.5rem 2rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow-soft);
+            margin-bottom: 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--secondary-blue) 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Crimson Text', serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: white;
+            box-shadow: 0 4px 12px rgba(46, 92, 127, 0.25);
+        }
+
+        h1 {
+            font-family: 'Crimson Text', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .nav-link {
+            padding: 0.5rem 1.25rem;
+            border-radius: 25px;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: var(--secondary-blue);
+            color: white;
+        }
+
+        /* Page Title */
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-family: 'Crimson Text', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        /* Action Bar */
+        .action-bar {
+            background: var(--bg-white);
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: var(--shadow-card);
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 300px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.75rem 1.25rem 0.75rem 3rem;
+            border: 2px solid #E5E9ED;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-family: 'Public Sans', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--secondary-blue);
+            box-shadow: 0 0 0 3px rgba(74, 143, 184, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1.25rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            color: var(--text-muted);
+        }
+
+        .btn {
+            padding: 0.75rem 1.75rem;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Public Sans', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary-blue) 0%, var(--primary-blue) 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(46, 92, 127, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(46, 92, 127, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--secondary-blue);
+            color: var(--secondary-blue);
+        }
+
+        .btn-secondary:hover {
+            background: var(--secondary-blue);
+            color: white;
+        }
+
+        /* Interaction Checker */
+        .interaction-checker {
+            background: linear-gradient(135deg, var(--warning-amber) 0%, var(--accent-orange) 100%);
+            padding: 2.5rem;
+            border-radius: 20px;
+            color: white;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .interaction-checker::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .checker-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .checker-title {
+            font-family: 'Crimson Text', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .checker-subtitle {
+            font-size: 1.05rem;
+            margin-bottom: 2rem;
+            opacity: 0.95;
+        }
+
+        .selected-meds {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .med-tag {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+
+        .med-tag .remove {
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .med-tag .remove:hover {
+            opacity: 1;
+        }
+
+        .check-btn {
+            background: white;
+            color: var(--accent-orange);
+            padding: 1rem 2.5rem;
+            border: none;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 1.05rem;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        .check-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Medication List */
+        .medication-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .med-card {
+            background: var(--bg-white);
+            padding: 2rem;
+            border-radius: 18px;
+            box-shadow: var(--shadow-card);
+            border-left: 4px solid var(--card-accent);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .med-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 28px rgba(46, 92, 127, 0.12);
+        }
+
+        .med-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.25rem;
+        }
+
+        .med-name-section h3 {
+            font-family: 'Crimson Text', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 0.35rem;
+        }
+
+        .med-dosage {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .status-badge {
+            padding: 0.35rem 0.85rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: rgba(82, 183, 136, 0.1);
+            color: var(--success-green);
+        }
+
+        .status-warning {
+            background: rgba(231, 111, 81, 0.1);
+            color: var(--danger-red);
+        }
+
+        .med-info-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .med-info-row .icon {
+            font-size: 1.1rem;
+        }
+
+        .med-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #E5E9ED;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 0.65rem;
+            border: 2px solid #E5E9ED;
+            background: transparent;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-dark);
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            border-color: var(--secondary-blue);
+            color: var(--secondary-blue);
+            background: rgba(74, 143, 184, 0.05);
+        }
+
+        /* Interaction Results */
+        .interaction-results {
+            background: var(--bg-white);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: var(--shadow-card);
+            margin-top: 2rem;
+            display: none;
+        }
+
+        .interaction-results.show {
+            display: block;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid #E5E9ED;
+        }
+
+        .result-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        .result-icon.danger {
+            background: rgba(231, 111, 81, 0.1);
+        }
+
+        .result-icon.warning {
+            background: rgba(244, 162, 97, 0.1);
+        }
+
+        .result-icon.safe {
+            background: rgba(82, 183, 136, 0.1);
+        }
+
+        .result-title {
+            font-family: 'Crimson Text', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .interaction-item {
+            padding: 1.75rem;
+            border-radius: 14px;
+            margin-bottom: 1.25rem;
+            border-left: 4px solid var(--interaction-color);
+            background: var(--interaction-bg);
+        }
+
+        .interaction-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .interaction-drugs {
+            font-weight: 700;
+            font-size: 1.15rem;
+            color: var(--text-dark);
+        }
+
+        .severity-badge {
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .severity-high {
+            background: var(--danger-red);
+            color: white;
+        }
+
+        .severity-moderate {
+            background: var(--warning-amber);
+            color: white;
+        }
+
+        .severity-low {
+            background: var(--success-green);
+            color: white;
+        }
+
+        .interaction-description {
+            color: var(--text-dark);
+            line-height: 1.7;
+            margin-bottom: 1rem;
+        }
+
+        .interaction-recommendation {
+            background: rgba(74, 143, 184, 0.05);
+            padding: 1rem;
+            border-radius: 10px;
+            border-left: 3px solid var(--secondary-blue);
+        }
+
+        .recommendation-title {
+            font-weight: 700;
+            color: var(--secondary-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .medication-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-bar {
+                flex-direction: column;
+            }
+
+            .search-box {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-section">
+                <div class="logo">LT</div>
+                <h1>LifeTrack Tech</h1>
+            </div>
+            <nav class="nav-links">
+                <a href="dashboard.html" class="nav-link">Dashboard</a>
+                <a href="medication.html" class="nav-link active">Quản lý Thuốc</a>
+                <a href="#" class="nav-link">Sức khỏe</a>
+                <a href="#" class="nav-link">Báo cáo</a>
+            </nav>
+        </header>
+
+        <div class="page-header">
+            <h2 class="page-title">Quản lý Thuốc 💊</h2>
+            <p class="page-subtitle">Theo dõi và quản lý thuốc an toàn với công nghệ AI</p>
+        </div>
+
+        <div class="action-bar">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" placeholder="Tìm kiếm thuốc theo tên, hoạt chất..." id="searchInput">
+            </div>
+            <button class="btn btn-primary" onclick="showAddMedForm()">
+                <span>➕</span>
+                Thêm thuốc mới
+            </button>
+            <button class="btn btn-secondary">
+                <span>📥</span>
+                Nhập từ đơn thuốc
+            </button>
+        </div>
+
+        <div class="interaction-checker">
+            <div class="checker-content">
+                <h2 class="checker-title">🔬 Kiểm tra tương tác thuốc</h2>
+                <p class="checker-subtitle">Chọn các loại thuốc bạn đang sử dụng để phát hiện nguy cơ tương tác</p>
+                <div class="selected-meds" id="selectedMeds">
+                    <div class="med-tag">
+                        <span>Aspirin 100mg</span>
+                        <span class="remove" onclick="removeMed(this)">✕</span>
+                    </div>
+                    <div class="med-tag">
+                        <span>Simvastatin 20mg</span>
+                        <span class="remove" onclick="removeMed(this)">✕</span>
+                    </div>
+                    <div class="med-tag">
+                        <span>Metformin 500mg</span>
+                        <span class="remove" onclick="removeMed(this)">✕</span>
+                    </div>
+                </div>
+                <button class="check-btn" onclick="checkInteractions()">
+                    ⚡ Kiểm tra ngay
+                </button>
+            </div>
+        </div>
+
+        <div class="interaction-results" id="interactionResults">
+            <div class="result-header">
+                <div class="result-icon danger">⚠️</div>
+                <div>
+                    <h3 class="result-title">Phát hiện 2 tương tác thuốc</h3>
+                    <p style="color: var(--text-muted); margin-top: 0.5rem;">1 tương tác mức độ cao, 1 tương tác mức độ trung bình</p>
+                </div>
+            </div>
+
+            <div class="interaction-item" style="--interaction-color: var(--danger-red); --interaction-bg: rgba(231, 111, 81, 0.05);">
+                <div class="interaction-header">
+                    <div class="interaction-drugs">Aspirin ⚡ Simvastatin</div>
+                    <span class="severity-badge severity-high">Mức độ cao</span>
+                </div>
+                <p class="interaction-description">
+                    <strong>Nguy cơ:</strong> Kết hợp Aspirin và Simvastatin có thể làm tăng nguy cơ tổn thương cơ (rhabdomyolysis) và ảnh hưởng đến chức năng gan. Aspirin có thể làm tăng nồng độ Simvastatin trong máu, dẫn đến các tác dụng phụ nghiêm trọng.
+                </p>
+                <div class="interaction-recommendation">
+                    <div class="recommendation-title">💡 Khuyến nghị:</div>
+                    <ul style="margin-left: 1.5rem; color: var(--text-dark); line-height: 1.7;">
+                        <li>Tham khảo bác sĩ trước khi sử dụng đồng thời</li>
+                        <li>Theo dõi các triệu chứng đau cơ, yếu cơ bất thường</li>
+                        <li>Xét nghiệm chức năng gan định kỳ</li>
+                        <li>Cân nhắc điều chỉnh liều hoặc thay thế thuốc thay thế</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="interaction-item" style="--interaction-color: var(--warning-amber); --interaction-bg: rgba(244, 162, 97, 0.05);">
+                <div class="interaction-header">
+                    <div class="interaction-drugs">Metformin ⚡ Aspirin</div>
+                    <span class="severity-badge severity-moderate">Trung bình</span>
+                </div>
+                <p class="interaction-description">
+                    <strong>Nguy cơ:</strong> Aspirin có thể làm tăng hiệu quả của Metformin, có thể dẫn đến nguy cơ hạ đường huyết (đường huyết thấp). Tuy nhiên, ở liều thấp (100mg), nguy cơ này được đánh giá ở mức trung bình.
+                </p>
+                <div class="interaction-recommendation">
+                    <div class="recommendation-title">💡 Khuyến nghị:</div>
+                    <ul style="margin-left: 1.5rem; color: var(--text-dark); line-height: 1.7;">
+                        <li>Theo dõi đường huyết thường xuyên</li>
+                        <li>Lưu ý các dấu hiệu hạ đường huyết: chóng mặt, vã mồ hôi, run tay</li>
+                        <li>Có thể tiếp tục sử dụng nhưng cần giám sát</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <h3 style="font-family: 'Crimson Text', serif; font-size: 1.75rem; margin: 2.5rem 0 1.5rem; color: var(--primary-blue);">
+            Danh sách thuốc hiện tại
+        </h3>
+
+        <div class="medication-grid">
+            <div class="med-card" style="--card-accent: var(--success-green);">
+                <div class="med-card-header">
+                    <div class="med-name-section">
+                        <h3>Metformin</h3>
+                        <div class="med-dosage">500mg • 2 viên/ngày</div>
+                    </div>
+                    <span class="status-badge status-active">✓ Đang dùng</span>
+                </div>
+                <div class="med-info-row">
+                    <span class="icon">🏥</span>
+                    <span>Thuốc điều trị tiểu đường type 2</span>
+                </div>
+                <div class="med-info-row">
+                    <span class="icon">⏰</span>
+                    <span>Sáng 8:00 • Tối 20:00</span>
+                </div>
+                <div class="med-info-row">
+                    <span class="icon">📦</span>
+                    <span>Còn lại: 15 viên (3 ngày)</span>
+                </div>
+                <div class="med-info-row">
+                    <span class="icon">👨‍⚕️</span>
+                    <span>BS. Nguyễn Văn An</span>
+                </div>
+                <div class="med-actions">
+                    <button class="action-btn">✏️ Sửa</button>
+                    <button class="action-btn">📊 Lịch sử</button>
+                    <button class="action-btn">🔔 Nhắc nhở</button>
+                </div>
+            </div>
+
+            <div class="med-card" style="--card-accent: var(--danger-red);">
+                <div class="med-card-header">
+                    <div class="med-name-section">
+                        <h3>Aspirin</h3>
+                        <div class="med-dosage">100mg • 1 viên/ngày</div>
+                    </div>
+                    <span class="status-badge status-warning">⚠️ Có tương tác</span>
+                </div>
+                <div class="med-info-row">
+                    <span class="icon">🏥</span>
+                    <span>Chống đông máu, phòng ngừa tim mạch</span>
+                </div>
+                <div class="med-info-row">
+                    <span class="icon">⏰</span>
+                    <span>Sau bữa trưa 12:00</span>
+                </div>
+                <div class="med-info-row">
+                    <span class="icon">📦</span>
+                    <span>Còn lại: 45 viên (45 ngày)</span>
+                </div>
+                <div class="med-info-row">
+                    <span class="icon">⚠️</span>
+                    <span style="color: var(--danger-red); font-weight: 600;">Tương tác với Simvastatin</span>
+                </div>
+                <div class="med-actions">
+                    <button class="action-btn">✏️ Sửa</button>
+                    <button class="action-btn">📊 Lịch sử</button>
+                    <button class="action-btn">🔔 Nhắc nhở</button>
+                </div>
+            </div>
+
+            <div class="med-card" style="--card-accent: var(--warning-amber);">
+                <div class="med-card-header">
+                    <div class="med-name-section">
+                        <h3>Simvastatin</h3>
+                        <div class="med-dosage">20mg • 1 viên/ngày</div>
+                    </div>
+                    <span class="status-badge status-warning">⚠️ Có tương tác</span>
+                </div>
+                <div class="med-info-row">
+                    <span class="icon">🏥</span>
+                    <span>Thuốc hạ cholesterol</span>
+                </div>
+                <div class="med-info-row">
+                    <span class="icon">⏰</span>
+                    <span>Trước bữa tối 18:00</span>
+                </div>
+                <div class="med-info-row">
+                    <span class="icon">📦</span>
+                    <span>Còn lại: 28 viên (28 ngày)</span>
+                </div>
+                <div class="med-info-row">
+                    <span class="icon">⚠️</span>
+                    <span style="color: var(--danger-red); font-weight: 600;">Tương tác với Aspirin</span>
+                </div>
+                <div class="med-actions">
+                    <button class="action-btn">✏️ Sửa</button>
+                    <button class="action-btn">📊 Lịch sử</button>
+                    <button class="action-btn">🔔 Nhắc nhở</button>
+                </div>
+            </div>
+
+            <div class="med-card" style="--card-accent: var(--secondary-blue);">
+                <div class="med-card-header">
+                    <div class="med-name-section">
+                        <h3>Lisinopril</h3>
+                        <div class="med-dosage">10mg • 1 viên/ngày</div>
+                    </div>
+                    <span class="status-badge status-active">✓ Đang dùng</span>
+                </div>
+                <div class="med-info-row">
+                    <span class="icon">🏥</span>
+                    <span>Thuốc hạ huyết áp</span>
+                </div>
+                <div class="med-info-row">
+                    <span class="icon">⏰</span>
+                    <span>Buổi tối 21:00</span>
+                </div>
+                <div class="med-info-row">
+                    <span class="icon">📦</span>
+                    <span>Còn lại: 20 viên (20 ngày)</span>
+                </div>
+                <div class="med-info-row">
+                    <span class="icon">👨‍⚕️</span>
+                    <span>BS. Trần Thị Bình</span>
+                </div>
+                <div class="med-actions">
+                    <button class="action-btn">✏️ Sửa</button>
+                    <button class="action-btn">📊 Lịch sử</button>
+                    <button class="action-btn">🔔 Nhắc nhở</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function removeMed(element) {
+            element.parentElement.remove();
+        }
+
+        function checkInteractions() {
+            const results = document.getElementById('interactionResults');
+            results.classList.add('show');
+            results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function showAddMedForm() {
+            alert('Chức năng thêm thuốc sẽ được triển khai trong phiên bản tiếp theo');
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.med-card');
+            
+            cards.forEach(card => {
+                const medName = card.querySelector('h3').textContent.toLowerCase();
+                if (medName.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
