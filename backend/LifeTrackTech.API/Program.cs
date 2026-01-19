@@ -127,7 +127,6 @@ app.MapGet("/health", () => Results.Ok(new
     Timestamp = DateTime.UtcNow,
     Version = "1.0.0"
 }))
-.WithTags("Health")
-.WithOpenApi();
+.WithTags("Health");
 
 app.Run();
