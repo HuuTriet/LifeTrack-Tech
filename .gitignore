@@ -1,13 +1,78 @@
-*.swp
-*.*~
-bin/
-obj/
+## LifeTrack Tech - .gitignore
+## Combined .NET and Node.js ignore patterns
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio
 .vs/
-node_modules/
-.env
 *.user
 *.suo
+*.userosscache
+*.sln.docstates
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# NuGet Packages
+*.nupkg
+*.snupkg
+
+# MSBuild Binary and Structured Log
+*.binlog
+
+# MSTest test Results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+# NUnit
+*.VisualState.xml
+TestResult.xml
+nunit-*.xml
+
+# Environment files
+.env
+.env.local
+.env.*.local
 appsettings.Development.json
+
+# Node.js / Frontend
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 build/
 dist/
+.cache/
+
+# Editor files
+*.swp
+*.*~
+*~
+~$*
 .DS_Store
+.vscode/
+.idea/
+
+# Test Coverage
+CodeCoverage/
+coverage/
+*.lcov
