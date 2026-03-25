@@ -1,0 +1,243 @@
+version: '3.9'
+
+# LifeTrack Tech — Full SOA Infrastructure
+# Services: MySQL | Redis | Consul | Kong | NestJS | Python OCR
+
+networks:
+  lifetrack-net:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  redis_data:
+  kong_data:
+  consul_data:
+
+services:
+
+  # ─── MySQL 8.0 ────────────────────────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: lifetrack-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-lifetrack_secret}
+      MYSQL_DATABASE: ${DB_NAME:-lifetrack_db}
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --default-time-zone=+07:00
+      --sql-mode=STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-u', 'root', '-p${DB_PASSWORD:-lifetrack_secret}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lifetrack-net
+
+  # ─── Redis 7 (Cache — NF-01) ──────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: lifetrack-redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD:-}
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --save 60 1
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lifetrack-net
+
+  # ─── Consul (Service Discovery) ──────────────────────────────────────────
+  consul:
+    image: hashicorp/consul:1.17
+    container_name: lifetrack-consul
+    restart: unless-stopped
+    command: >
+      consul agent -dev
+      -ui
+      -bind=0.0.0.0
+      -client=0.0.0.0
+      -node=lifetrack-consul-node
+      -datacenter=lifetrack-dc
+    ports:
+      - '8500:8500'   # UI + HTTP API
+      - '8600:8600/udp'  # DNS
+    volumes:
+      - consul_data:/consul/data
+    healthcheck:
+      test: ['CMD', 'consul', 'members']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lifetrack-net
+
+  # ─── Kong API Gateway ─────────────────────────────────────────────────────
+  kong-db:
+    image: postgres:15-alpine
+    container_name: lifetrack-kong-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: kong
+      POSTGRES_DB: kong
+      POSTGRES_PASSWORD: kong_secret
+    volumes:
+      - kong_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-U', 'kong']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - lifetrack-net
+
+  kong-migration:
+    image: kong:3.5-alpine
+    container_name: lifetrack-kong-migration
+    command: kong migrations bootstrap
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-db
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: kong_secret
+      KONG_PG_DATABASE: kong
+    depends_on:
+      kong-db:
+        condition: service_healthy
+    networks:
+      - lifetrack-net
+
+  kong:
+    image: kong:3.5-alpine
+    container_name: lifetrack-kong
+    restart: unless-stopped
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-db
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: kong_secret
+      KONG_PG_DATABASE: kong
+      KONG_PROXY_LISTEN: '0.0.0.0:8000, 0.0.0.0:8443 ssl'
+      KONG_ADMIN_LISTEN: '0.0.0.0:8001, 0.0.0.0:8444 ssl'
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+    ports:
+      - '8000:8000'   # Kong Proxy (HTTP)
+      - '8443:8443'   # Kong Proxy (HTTPS)
+      - '8001:8001'   # Kong Admin API
+      - '8444:8444'   # Kong Admin API (HTTPS)
+    depends_on:
+      kong-db:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'kong', 'health']
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    networks:
+      - lifetrack-net
+
+  # ─── NestJS Backend ────────────────────────────────────────────────────────
+  nestjs-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: lifetrack-nestjs
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USERNAME: root
+      DB_PASSWORD: ${DB_PASSWORD:-lifetrack_secret}
+      DB_NAME: ${DB_NAME:-lifetrack_db}
+      DB_SYNCHRONIZE: 'true'   # Use migrations in production!
+      DB_LOGGING: 'true'
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET:-change_this_secret_in_production}
+      JWT_EXPIRES_IN: 7d
+      CONSUL_HOST: consul
+      CONSUL_PORT: 8500
+      SERVICE_HOST: nestjs-api
+      SERVICE_PORT: 3001
+      OCR_SERVICE_URL: http://python-ocr:8000
+      OCR_SERVICE_GRPC_HOST: python-ocr
+      OCR_SERVICE_GRPC_PORT: 50051
+      DRUG_INTERACTION_API_URL: ${DRUG_INTERACTION_API_URL:-https://api.druginteractions.example.com/v1}
+      DRUG_INTERACTION_API_KEY: ${DRUG_INTERACTION_API_KEY:-}
+      CORS_ORIGIN: http://localhost:3000
+    ports:
+      - '3001:3001'
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      consul:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:3001/health']
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    networks:
+      - lifetrack-net
+
+  # ─── Python OCR Microservice ──────────────────────────────────────────────
+  python-ocr:
+    build:
+      context: ../../python-ocr-service
+      dockerfile: Dockerfile
+    container_name: lifetrack-python-ocr
+    restart: unless-stopped
+    environment:
+      OCR_ENGINE: easyocr        # Options: easyocr | tesseract | google_vision
+      LANGUAGES: vi,en
+      GRPC_PORT: 50051
+      REST_PORT: 8000
+      LOG_LEVEL: INFO
+      CONSUL_HOST: consul
+      CONSUL_PORT: 8500
+      SERVICE_NAME: ocr-service
+    ports:
+      - '8000:8000'    # REST API
+      - '50051:50051'  # gRPC
+    volumes:
+      - ../../python-ocr-service:/app
+    depends_on:
+      consul:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:8000/health']
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    networks:
+      - lifetrack-net

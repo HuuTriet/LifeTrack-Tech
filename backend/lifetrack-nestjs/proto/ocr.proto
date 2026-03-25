@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package lifetrack.ocr;
+
+// OCR Service exposed by Python microservice
+service OcrService {
+  // Process a prescription image and return extracted data
+  rpc ProcessPrescription(PrescriptionImageRequest) returns (PrescriptionOcrResponse);
+
+  // Stream multiple pages of a multi-page prescription PDF
+  rpc ProcessPrescriptionStream(stream PrescriptionImageRequest) returns (stream PrescriptionOcrResponse);
+}
+
+message PrescriptionImageRequest {
+  bytes image_data    = 1;  // Raw image bytes
+  string mime_type    = 2;  // e.g. "image/jpeg", "image/png", "application/pdf"
+  string language     = 3;  // Language hint: "vi" or "en"
+  string request_id   = 4;  // Optional idempotency key
+}
+
+message PrescriptionOcrResponse {
+  bool   success           = 1;
+  string raw_text          = 2;
+  double confidence_score  = 3;  // 0.0 to 1.0
+
+  // Extracted medication fields
+  string drug_name         = 4;
+  double dosage            = 5;   // 0 = unknown/failed to parse
+  string dosage_unit       = 6;   // e.g. "mg", "ml"
+  string frequency         = 7;   // e.g. "twice daily"
+
+  // Prescription metadata
+  string doctor_name       = 8;
+  string hospital_name     = 9;
+  string prescribed_date   = 10;  // ISO 8601 date string
+
+  // Error handling
+  string error_message     = 11;
+  string image_url         = 12;  // URL if image was stored remotely
+
+  // Request echo
+  string request_id        = 13;
+}
