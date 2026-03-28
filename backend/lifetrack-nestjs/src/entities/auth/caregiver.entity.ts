@@ -33,12 +33,7 @@ export class Caregiver {
   @Column({ length: 100, name: 'license_number', nullable: true })
   licenseNumber: string;
 
-  @Column({
-    type: 'enum',
-    enum: CertificationStatus,
-    default: CertificationStatus.PENDING,
-    name: 'certification_status',
-  })
+  @Column({ type: 'nvarchar', length: 20, default: CertificationStatus.PENDING, name: 'certification_status' })
   certificationStatus: CertificationStatus;
 
   @Column({ length: 200, nullable: true })

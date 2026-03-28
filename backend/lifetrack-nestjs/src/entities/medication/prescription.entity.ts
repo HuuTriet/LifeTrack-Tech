@@ -60,24 +60,16 @@ export class Prescription {
   @Column({ type: 'date', name: 'end_date', nullable: true })
   endDate: Date;
 
-  @Column({
-    type: 'enum',
-    enum: PrescriptionStatus,
-    default: PrescriptionStatus.ACTIVE,
-  })
+  @Column({ type: 'nvarchar', length: 20, default: PrescriptionStatus.ACTIVE })
   status: PrescriptionStatus;
 
-  @Column({
-    type: 'enum',
-    enum: PrescriptionSource,
-    default: PrescriptionSource.MANUAL,
-  })
+  @Column({ type: 'nvarchar', length: 20, default: PrescriptionSource.MANUAL })
   source: PrescriptionSource;
 
   @Column({ type: 'text', name: 'diagnosis', nullable: true })
   diagnosis: string;
 
-  @Column({ type: 'text', notes: 'notes', nullable: true })
+  @Column({ type: 'text', name: 'notes', nullable: true })
   notes: string;
 
   // OCR metadata

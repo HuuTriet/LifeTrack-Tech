@@ -59,22 +59,22 @@ export class PrescriptionItem {
   @Column({ type: 'int', nullable: true })
   quantity: number; // number of tablets/capsules per dose
 
-  @Column({ type: 'enum', enum: FrequencyUnit, default: FrequencyUnit.DAILY })
+  @Column({ type: 'nvarchar', length: 30, default: FrequencyUnit.DAILY })
   frequency: FrequencyUnit;
 
   @Column({ type: 'int', name: 'frequency_interval', nullable: true })
   frequencyInterval: number; // for EVERY_X_HOURS: e.g. 8
 
-  @Column({ type: 'json', name: 'scheduled_times', nullable: true })
+  @Column({ type: 'simple-json', name: 'scheduled_times', nullable: true })
   scheduledTimes: string[]; // e.g. ["08:00", "14:00", "20:00"]
 
-  @Column({ type: 'enum', enum: MealRelation, default: MealRelation.INDEPENDENT, name: 'meal_relation' })
+  @Column({ type: 'nvarchar', length: 20, default: MealRelation.INDEPENDENT, name: 'meal_relation' })
   mealRelation: MealRelation;
 
   @Column({ type: 'int', name: 'duration_days', nullable: true })
   durationDays: number;
 
-  @Column({ type: 'text', instructions: 'instructions', nullable: true })
+  @Column({ type: 'text', name: 'instructions', nullable: true })
   instructions: string;
 
   // =====================

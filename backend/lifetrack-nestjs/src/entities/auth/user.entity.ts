@@ -43,14 +43,10 @@ export class User {
   @Exclude()
   password: string;
 
-  @Column({ type: 'enum', enum: UserRole, default: UserRole.ELDERLY })
+  @Column({ type: 'nvarchar', length: 50, default: UserRole.ELDERLY })
   role: UserRole;
 
-  @Column({
-    type: 'enum',
-    enum: UserStatus,
-    default: UserStatus.PENDING_VERIFICATION,
-  })
+  @Column({ type: 'nvarchar', length: 50, default: UserStatus.PENDING_VERIFICATION })
   status: UserStatus;
 
   @Column({ name: 'avatar_url', length: 500, nullable: true })

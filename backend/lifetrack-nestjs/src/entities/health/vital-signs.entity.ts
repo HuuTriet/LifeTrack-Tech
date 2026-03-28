@@ -69,11 +69,7 @@ export class VitalSigns {
   @Column({ type: 'int', name: 'respiratory_rate', nullable: true })
   respiratoryRate: number; // breaths/min
 
-  @Column({
-    type: 'enum',
-    enum: VitalSignStatus,
-    default: VitalSignStatus.NORMAL,
-  })
+  @Column({ type: 'nvarchar', length: 20, default: VitalSignStatus.NORMAL })
   status: VitalSignStatus;
 
   @Column({ type: 'text', nullable: true })

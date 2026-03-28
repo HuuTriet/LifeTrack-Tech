@@ -49,7 +49,7 @@ export class Reminder {
   @JoinColumn({ name: 'elderly_id' })
   elderly: Elderly;
 
-  @Column({ type: 'enum', enum: ReminderType, default: ReminderType.MEDICATION })
+  @Column({ type: 'nvarchar', length: 20, default: ReminderType.MEDICATION })
   type: ReminderType;
 
   @Column({ length: 255 })
@@ -58,13 +58,13 @@ export class Reminder {
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column({ type: 'enum', enum: ReminderStatus, default: ReminderStatus.PENDING })
+  @Column({ type: 'nvarchar', length: 20, default: ReminderStatus.PENDING })
   status: ReminderStatus;
 
-  @Column({ type: 'enum', enum: ReminderRepeat, default: ReminderRepeat.NONE })
+  @Column({ type: 'nvarchar', length: 20, default: ReminderRepeat.NONE })
   repeat: ReminderRepeat;
 
-  @Column({ type: 'json', name: 'repeat_days', nullable: true })
+  @Column({ type: 'simple-json', name: 'repeat_days', nullable: true })
   repeatDays: number[]; // 0=Sun, 1=Mon, ..., 6=Sat
 
   @Column({ name: 'scheduled_at', type: 'datetime' })

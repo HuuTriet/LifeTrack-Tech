@@ -57,7 +57,7 @@ export class OcrService {
   ): Promise<OcrPrescriptionResponseDto> {
     const ocrServiceUrl = await this.consulService.getServiceUrl(
       'ocr-service',
-      this.configService.get<string>('OCR_SERVICE_URL'),
+      this.configService.get<string>('OCR_SERVICE_URL') || 'http://localhost:8001',
     );
 
     const timeoutMs =

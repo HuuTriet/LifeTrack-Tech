@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LifeTrack — Nhắc thuốc</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      width: 360px;
+      min-height: 400px;
+      background: #FAF8F5;
+      color: #2C3E50;
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, #2E5C7F 0%, #4A8FB8 100%);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: white;
+    }
+    .header-logo {
+      width: 36px; height: 36px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 14px;
+    }
+    .header-title { font-weight: 700; font-size: 15px; }
+    .header-sub   { font-size: 11px; opacity: 0.85; }
+
+    /* Main content */
+    .content { padding: 14px; }
+
+    /* Login form */
+    #login-section { display: flex; flex-direction: column; gap: 10px; }
+    .label { font-size: 12px; font-weight: 600; color: #5A6B7B; margin-bottom: 3px; }
+    input[type=email], input[type=password] {
+      width: 100%; padding: 9px 12px;
+      border: 2px solid #E0E8F0; border-radius: 10px;
+      font-size: 14px; color: #2C3E50;
+      background: white; outline: none;
+      transition: border-color 0.15s;
+    }
+    input:focus { border-color: #4A8FB8; }
+
+    .btn {
+      padding: 10px; border: none; border-radius: 10px;
+      font-size: 14px; font-weight: 700; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-primary { background: #2E5C7F; color: white; }
+    .btn-primary:hover { background: #1A3D5C; }
+    .btn-primary:disabled { background: #A0ADB8; cursor: not-allowed; }
+    .btn-sm {
+      padding: 6px 12px; font-size: 12px; font-weight: 600;
+      border-radius: 8px; border: none; cursor: pointer;
+    }
+    .btn-success { background: #52B788; color: white; }
+    .btn-outline { background: transparent; border: 2px solid #D1D5DB; color: #5A6B7B; }
+
+    /* Error */
+    .error {
+      padding: 8px 12px; background: #FEF2F2;
+      border: 1px solid #FCA5A5; border-radius: 8px;
+      font-size: 12px; color: #DC2626;
+    }
+
+    /* Dashboard */
+    #dashboard-section { display: none; }
+
+    .stats-row {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+      margin-bottom: 14px;
+    }
+    .stat-card {
+      background: white; border-radius: 12px;
+      padding: 10px; text-align: center;
+      border: 2px solid #E8F0F7;
+    }
+    .stat-num  { font-size: 24px; font-weight: 800; line-height: 1; }
+    .stat-label { font-size: 10px; color: #7A8B99; margin-top: 3px; }
+
+    /* Med list */
+    .section-title {
+      font-size: 13px; font-weight: 700; color: #2E5C7F;
+      margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+    }
+    .med-item {
+      background: white; border-radius: 12px;
+      padding: 10px 12px; margin-bottom: 8px;
+      border: 2px solid #E8F0F7;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .med-item.pending { border-color: #FDE68A; background: #FFFBEB; }
+    .med-item.taken   { border-color: #86EFAC; background: #F0FDF4; }
+    .med-item.overdue { border-color: #FCA5A5; background: #FFF1F2; }
+    .med-time {
+      min-width: 44px; text-align: center; font-weight: 800; font-size: 13px;
+      padding: 4px 6px; border-radius: 8px; background: #EBF4FB; color: #2E5C7F;
+    }
+    .med-time.overdue { background: #FEE2E2; color: #E76F51; }
+    .med-name { font-weight: 600; font-size: 13px; flex: 1; }
+    .med-status { font-size: 11px; color: #7A8B99; margin-top: 2px; }
+    .check-icon { color: #52B788; font-size: 20px; }
+
+    /* Progress bar */
+    .progress-wrap { margin-bottom: 14px; }
+    .progress-header {
+      display: flex; justify-content: space-between;
+      font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #5A6B7B;
+    }
+    .progress-bar-bg {
+      height: 8px; background: #E8F0F7; border-radius: 4px; overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%; background: #52B788; border-radius: 4px;
+      transition: width 0.4s ease;
+    }
+
+    /* Footer */
+    .footer {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 12px; padding-top: 10px;
+      border-top: 1px solid #E8F0F7; font-size: 11px; color: #A0ADB8;
+    }
+    .open-app {
+      font-size: 11px; font-weight: 600; color: #2E5C7F;
+      text-decoration: none; background: #EBF4FB;
+      padding: 4px 10px; border-radius: 6px;
+    }
+
+    .spinner {
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: white; border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .empty { text-align: center; color: #A0ADB8; font-size: 13px; padding: 20px 0; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">LT</div>
+  <div>
+    <div class="header-title">LifeTrack Tech</div>
+    <div class="header-sub" id="header-sub">Nhắc uống thuốc</div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- Login -->
+  <div id="login-section">
+    <p style="font-size:13px;color:#5A6B7B;margin-bottom:6px">
+      Đăng nhập để theo dõi lịch uống thuốc
+    </p>
+    <div>
+      <div class="label">Email</div>
+      <input type="email" id="email" placeholder="email@example.com" />
+    </div>
+    <div>
+      <div class="label">Mật khẩu</div>
+      <input type="password" id="password" placeholder="••••••••" />
+    </div>
+    <div id="login-error" class="error" style="display:none"></div>
+    <button class="btn btn-primary" id="btn-login">Đăng nhập</button>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard-section">
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-num" id="stat-total" style="color:#2E5C7F">—</div>
+        <div class="stat-label">Tổng hôm nay</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-taken" style="color:#52B788">—</div>
+        <div class="stat-label">Đã uống</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-pending" style="color:#F59E0B">—</div>
+        <div class="stat-label">Chờ uống</div>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-wrap">
+      <div class="progress-header">
+        <span>Tiến độ hôm nay</span>
+        <span id="progress-pct">0%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <!-- Med list -->
+    <div class="section-title">💊 Lịch uống thuốc</div>
+    <div id="med-list"></div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <span id="last-updated">—</span>
+      <a class="open-app" href="http://localhost:3001/elderly/medications" target="_blank">
+        Mở ứng dụng ↗
+      </a>
+    </div>
+
+    <button class="btn btn-outline btn-sm" id="btn-logout" style="width:100%;margin-top:10px">
+      Đăng xuất
+    </button>
+  </div>
+
+</div>
+
+<script src="popup.js"></script>
+</body>
+</html>

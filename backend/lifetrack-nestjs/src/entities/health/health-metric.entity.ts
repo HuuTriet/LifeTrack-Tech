@@ -45,7 +45,7 @@ export class HealthMetric {
   @JoinColumn({ name: 'elderly_id' })
   elderly: Elderly;
 
-  @Column({ type: 'enum', enum: MetricType, name: 'metric_type' })
+  @Column({ type: 'nvarchar', length: 30, name: 'metric_type' })
   metricType: MetricType;
 
   @Column({ type: 'decimal', precision: 10, scale: 3 })
@@ -54,11 +54,7 @@ export class HealthMetric {
   @Column({ length: 20 })
   unit: string; // kg, bpm, hours, steps, etc.
 
-  @Column({
-    type: 'enum',
-    enum: MetricTrend,
-    default: MetricTrend.UNKNOWN,
-  })
+  @Column({ type: 'nvarchar', length: 20, default: MetricTrend.UNKNOWN })
   trend: MetricTrend;
 
   @Column({ name: 'target_min', type: 'decimal', precision: 10, scale: 3, nullable: true })

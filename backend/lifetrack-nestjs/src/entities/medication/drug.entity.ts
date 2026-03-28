@@ -51,10 +51,10 @@ export class Drug {
   @Column({ name: 'brand_name', length: 255, nullable: true })
   brandName: string;
 
-  @Column({ type: 'enum', enum: DrugCategory, default: DrugCategory.OTHER })
+  @Column({ type: 'nvarchar', length: 30, default: DrugCategory.OTHER })
   category: DrugCategory;
 
-  @Column({ type: 'enum', enum: DrugForm, default: DrugForm.TABLET })
+  @Column({ type: 'nvarchar', length: 20, default: DrugForm.TABLET })
   form: DrugForm;
 
   @Column({ length: 100, nullable: true })

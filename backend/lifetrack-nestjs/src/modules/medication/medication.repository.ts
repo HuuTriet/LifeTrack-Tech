@@ -110,7 +110,7 @@ export class MedicationRepository {
       return this.prescriptionRepo.findOne({
         where: { id: savedPrescription.id },
         relations: ['items', 'items.drug'],
-      });
+      }) as Promise<Prescription>;
     } catch (err) {
       if (ownTransaction) {
         await qr.rollbackTransaction();
@@ -132,7 +132,7 @@ export class MedicationRepository {
     data: Partial<Prescription>,
   ): Promise<Prescription> {
     await this.prescriptionRepo.update(id, data);
-    return this.findPrescriptionById(id);
+    return this.findPrescriptionById(id) as Promise<Prescription>;
   }
 
   async softDeletePrescription(id: string): Promise<void> {

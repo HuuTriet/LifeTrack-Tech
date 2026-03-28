@@ -53,13 +53,13 @@ export class Notification {
   @Column({ name: 'recipient_user_id' })
   recipientUserId: string; // could be caregiver or elderly
 
-  @Column({ type: 'enum', enum: NotificationType })
+  @Column({ type: 'nvarchar', length: 50 })
   type: NotificationType;
 
-  @Column({ type: 'enum', enum: NotificationChannel, default: NotificationChannel.IN_APP })
+  @Column({ type: 'nvarchar', length: 20, default: NotificationChannel.IN_APP })
   channel: NotificationChannel;
 
-  @Column({ type: 'enum', enum: NotificationPriority, default: NotificationPriority.MEDIUM })
+  @Column({ type: 'nvarchar', length: 20, default: NotificationPriority.MEDIUM })
   priority: NotificationPriority;
 
   @Column({ length: 255 })
@@ -68,7 +68,7 @@ export class Notification {
   @Column({ type: 'text' })
   body: string;
 
-  @Column({ type: 'json', nullable: true })
+  @Column({ type: 'simple-json', nullable: true })
   metadata: Record<string, any>; // extra context data
 
   @Column({ name: 'is_read', default: false })

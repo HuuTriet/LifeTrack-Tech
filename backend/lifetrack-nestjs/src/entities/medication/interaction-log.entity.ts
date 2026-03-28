@@ -56,19 +56,10 @@ export class InteractionLog {
   @Column({ name: 'existing_drug_name', length: 255, nullable: true })
   existingDrugName: string;
 
-  @Column({
-    type: 'enum',
-    enum: InteractionSeverity,
-    default: InteractionSeverity.NONE,
-  })
+  @Column({ type: 'nvarchar', length: 20, default: InteractionSeverity.NONE })
   severity: InteractionSeverity;
 
-  @Column({
-    type: 'enum',
-    enum: InteractionCheckStatus,
-    default: InteractionCheckStatus.PASSED,
-    name: 'check_status',
-  })
+  @Column({ type: 'nvarchar', length: 20, default: InteractionCheckStatus.PASSED, name: 'check_status' })
   checkStatus: InteractionCheckStatus;
 
   @Column({ type: 'text', name: 'interaction_description', nullable: true })
@@ -78,7 +69,7 @@ export class InteractionLog {
   clinicalEffects: string;
 
   /** Raw JSON response from the Drug Interaction API */
-  @Column({ type: 'json', name: 'api_raw_response', nullable: true })
+  @Column({ type: 'simple-json', name: 'api_raw_response', nullable: true })
   apiRawResponse: Record<string, any>;
 
   @Column({ name: 'api_source', length: 100, nullable: true })

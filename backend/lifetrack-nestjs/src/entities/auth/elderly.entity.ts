@@ -54,12 +54,7 @@ export class Elderly {
   @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
   height: number; // cm
 
-  @Column({
-    type: 'enum',
-    enum: BloodType,
-    default: BloodType.UNKNOWN,
-    name: 'blood_type',
-  })
+  @Column({ type: 'nvarchar', length: 10, default: BloodType.UNKNOWN, name: 'blood_type' })
   bloodType: BloodType;
 
   @Column({ type: 'text', name: 'known_allergies', nullable: true })
