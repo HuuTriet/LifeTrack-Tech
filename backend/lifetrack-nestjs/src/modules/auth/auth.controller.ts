@@ -140,6 +140,24 @@ export class AuthController {
     return this.authService.sanitizeUser(user);
   }
 
+  // ── Notification email OTP (for notification settings) ───────────────────
+
+  @Public()
+  @Post('notification-email/send-otp')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Send OTP to a notification email address' })
+  async sendNotificationOtp(@Body('email') email: string) {
+    return this.authService.sendNotificationEmailOtp(email);
+  }
+
+  @Public()
+  @Post('notification-email/verify')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verify notification email OTP' })
+  async verifyNotificationOtp(@Body() body: { email: string; otp: string }) {
+    return this.authService.verifyNotificationEmailOtp(body.email, body.otp);
+  }
+
   // ── DEV ONLY ──────────────────────────────────────────────────────────────
 
   @Public()

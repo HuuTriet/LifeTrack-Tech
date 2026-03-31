@@ -125,6 +125,28 @@ export const medicationService = {
   },
 
   /**
+   * Elderly user self-adds their own medication reminder.
+   * Backend: POST /medications/self/add
+   */
+  selfAddMedication: async (payload: {
+    elderlyId: string;
+    items: Array<{
+      drugName: string;
+      dosage?: number;
+      dosageUnit?: string;
+      scheduledTimes: string[];
+      mealRelation?: string;
+      instructions?: string;
+    }>;
+    startDate?: string;
+    endDate?: string;
+    notes?: string;
+  }): Promise<Prescription> => {
+    const res = await api.post('/medications/self/add', payload);
+    return res.data;
+  },
+
+  /**
    * Get a single prescription by ID.
    * Backend: GET /medications/prescriptions/:id
    */

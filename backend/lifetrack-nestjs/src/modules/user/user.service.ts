@@ -6,9 +6,9 @@ import {
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like, FindOptionsWhere } from 'typeorm';
+import { Repository, FindOptionsWhere } from 'typeorm';
 
-import { User, UserRole, UserStatus } from '../../entities/auth/user.entity';
+import { User, UserStatus } from '../../entities/auth/user.entity';
 import { Elderly } from '../../entities/auth/elderly.entity';
 import {
   UpdateProfileDto,
@@ -72,14 +72,32 @@ export class UserService {
   }
 
   async createElderlyProfile(dto: CreateElderlyProfileDto, createdBy: string) {
-    const user = await this.userRepo.findOne({ where: { id: dto.userId } });
+    let resolvedUserId = dto.userId;
+
+    if (!resolvedUserId && dto.email) {
+      const found = await this.userRepo.findOne({ where: { email: dto.email } });
+      if (!found) throw new NotFoundException(`Không tìm thấy tài khoản với email "${dto.email}". Người dùng cần đăng ký trước.`);
+      resolvedUserId = found.id;
+    }
+
+    if (!resolvedUserId) throw new NotFoundException('Vui lòng cung cấp userId hoặc email của bệnh nhân.');
+
+    const user = await this.userRepo.findOne({ where: { id: resolvedUserId } });
     if (!user) throw new NotFoundException('User not found.');
 
-    const existing = await this.elderlyRepo.findOne({ where: { userId: dto.userId } });
-    if (existing) throw new ConflictException('Elderly profile already exists for this user.');
+    const existing = await this.elderlyRepo.findOne({ where: { userId: resolvedUserId } });
+    if (existing) {
+      // If profile has no caregiver yet (orphaned), assign this caregiver
+      if (!existing.caregiverId) {
+        await this.elderlyRepo.update(existing.id, { caregiverId: createdBy });
+        return this.getElderlyProfile(existing.id);
+      }
+      throw new ConflictException('Hồ sơ bệnh nhân đã tồn tại cho người dùng này.');
+    }
 
     const elderly = this.elderlyRepo.create({
-      userId: dto.userId,
+      userId: resolvedUserId,
+      caregiverId: createdBy,
       dateOfBirth: dto.dateOfBirth ? new Date(dto.dateOfBirth) : undefined,
       gender: dto.gender,
       weight: dto.weight,
@@ -92,7 +110,7 @@ export class UserService {
       roomNumber: dto.roomNumber,
     });
 
-    this.logger.log(`Elderly profile created for user ${dto.userId} by ${createdBy}`);
+    this.logger.log(`Elderly profile created for user ${resolvedUserId} by ${createdBy}`);
     return this.elderlyRepo.save(elderly);
   }
 
@@ -127,6 +145,21 @@ export class UserService {
     const where: FindOptionsWhere<Elderly> = {};
     if (caregiverId) where.caregiverId = caregiverId;
     return this.elderlyRepo.find({ where, relations: ['user'], order: { createdAt: 'DESC' } });
+  }
+
+  // ── Search users by name or email (for caregiver) ────────────────────────
+
+  async searchUsers(q: string, limit = 10) {
+    if (!q || q.trim().length < 2) return [];
+    const results = await this.userRepo
+      .createQueryBuilder('u')
+      .select(['u.id', 'u.fullName', 'u.email', 'u.role', 'u.status'])
+      .where('(u.fullName LIKE :q OR u.email LIKE :q)', { q: `%${q.trim()}%` })
+      .andWhere('u.deletedAt IS NULL')
+      .orderBy('u.fullName', 'ASC')
+      .take(limit)
+      .getMany();
+    return results;
   }
 
   // ── UC-16: Admin User Management ──────────────────────────────────────────

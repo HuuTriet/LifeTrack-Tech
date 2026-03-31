@@ -58,6 +58,16 @@ export class UserController {
     return this.userService.updateProfile(user.id, dto);
   }
 
+  // ── Search users by name/email (for caregiver) ───────────────────────────
+
+  @Get('users/search')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.CAREGIVER, UserRole.ADMIN)
+  @ApiOperation({ summary: 'Search users by name or email' })
+  async searchUsers(@Query('q') q: string, @Query('limit') limit?: string) {
+    return this.userService.searchUsers(q, limit ? parseInt(limit) : 10);
+  }
+
   // ── UC-05: Elderly Profiles ───────────────────────────────────────────────
 
   @Get('elderly')

@@ -19,6 +19,94 @@ export class MailService {
     });
   }
 
+  async sendMedicationReminderEmail(
+    to: string,
+    patientName: string,
+    medications: Array<{
+      drugName: string;
+      dosage?: string;
+      scheduledTimes?: string[];
+      mealRelation?: string;
+      instructions?: string;
+      takenUrl?: string;
+      snoozeUrl?: string;
+    }>,
+    date: string,
+  ): Promise<void> {
+    const medRows = medications
+      .map(
+        (m) => `
+        <tr>
+          <td style="padding:12px 14px; border-bottom:1px solid #f0f0f0; font-weight:600; color:#1e293b;">${m.drugName}</td>
+          <td style="padding:12px 14px; border-bottom:1px solid #f0f0f0; color:#475569;">${m.dosage || '–'}</td>
+          <td style="padding:12px 14px; border-bottom:1px solid #f0f0f0; color:#475569;">${(m.scheduledTimes || []).join(', ') || '–'}</td>
+          <td style="padding:12px 14px; border-bottom:1px solid #f0f0f0; color:#475569;">${
+            m.mealRelation === 'BEFORE' ? 'Trước ăn'
+            : m.mealRelation === 'AFTER' ? 'Sau ăn'
+            : m.mealRelation === 'WITH' ? 'Trong bữa ăn'
+            : 'Không phụ thuộc'
+          }</td>
+          <td style="padding:12px 14px; border-bottom:1px solid #f0f0f0; color:#475569;">${m.instructions || '–'}</td>
+          <td style="padding:12px 14px; border-bottom:1px solid #f0f0f0; text-align:center;">
+            ${m.takenUrl ? `<a href="${m.takenUrl}" style="display:inline-block;background:#52B788;color:#fff;font-weight:700;font-size:12px;padding:6px 14px;border-radius:8px;text-decoration:none;margin-right:6px;">✅ Đã uống</a>` : ''}
+            ${m.snoozeUrl ? `<a href="${m.snoozeUrl}" style="display:inline-block;background:#F4A261;color:#fff;font-weight:700;font-size:12px;padding:6px 14px;border-radius:8px;text-decoration:none;">🔔 Nhắc lại</a>` : ''}
+          </td>
+        </tr>`,
+      )
+      .join('');
+
+    const html = `
+      <div style="font-family: 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f8fafc; padding: 24px;">
+        <div style="background: linear-gradient(135deg, #2E5C7F, #4A8FB8); padding: 28px 32px; border-radius: 16px 16px 0 0; text-align: center;">
+          <h1 style="color:#fff; margin:0; font-size:22px; font-weight:700;">💊 Nhắc nhở uống thuốc</h1>
+          <p style="color:rgba(255,255,255,0.85); margin:8px 0 0; font-size:14px;">LifeTrack Tech – Chăm sóc sức khoẻ thông minh</p>
+        </div>
+        <div style="background:#fff; border-radius:0 0 16px 16px; padding:28px 32px; box-shadow:0 4px 20px rgba(0,0,0,0.06);">
+          <p style="font-size:16px; color:#1e293b; margin-top:0;">Xin chào <strong>${patientName}</strong>,</p>
+          <p style="color:#475569; font-size:14px; line-height:1.6;">
+            Dưới đây là lịch uống thuốc của bạn ngày <strong>${date}</strong>.
+            Hãy uống đúng giờ và đúng liều để đảm bảo sức khoẻ tốt nhất.
+          </p>
+          <table style="width:100%; border-collapse:collapse; margin:20px 0; font-size:13px;">
+            <thead>
+              <tr style="background:#EBF4FB;">
+                <th style="padding:10px 14px; text-align:left; color:#2E5C7F; font-weight:700; border-bottom:2px solid #BFDBFE;">Tên thuốc</th>
+                <th style="padding:10px 14px; text-align:left; color:#2E5C7F; font-weight:700; border-bottom:2px solid #BFDBFE;">Liều dùng</th>
+                <th style="padding:10px 14px; text-align:left; color:#2E5C7F; font-weight:700; border-bottom:2px solid #BFDBFE;">Giờ uống</th>
+                <th style="padding:10px 14px; text-align:left; color:#2E5C7F; font-weight:700; border-bottom:2px solid #BFDBFE;">Bữa ăn</th>
+                <th style="padding:10px 14px; text-align:left; color:#2E5C7F; font-weight:700; border-bottom:2px solid #BFDBFE;">Hướng dẫn</th>
+                <th style="padding:10px 14px; text-align:center; color:#2E5C7F; font-weight:700; border-bottom:2px solid #BFDBFE;">Phản hồi</th>
+              </tr>
+            </thead>
+            <tbody>${medRows}</tbody>
+          </table>
+          <div style="background:#FFF7ED; border-left:4px solid #F4A261; padding:14px 18px; border-radius:8px; margin-top:20px;">
+            <p style="margin:0; font-size:13px; color:#92400E;">
+              ⚠️ <strong>Lưu ý:</strong> Không tự ý tăng/giảm liều. Liên hệ bác sĩ nếu có phản ứng bất thường.
+            </p>
+          </div>
+          <hr style="border:none; border-top:1px solid #f1f5f9; margin:24px 0;">
+          <p style="font-size:12px; color:#94a3b8; margin:0; text-align:center;">
+            Email này được gửi tự động bởi hệ thống LifeTrack Tech.<br>
+            Không trả lời email này.
+          </p>
+        </div>
+      </div>`;
+
+    try {
+      await this.transporter.sendMail({
+        from: this.configService.get<string>('MAIL_FROM') || 'LifeTrack Tech <noreply@lifetrack.com>',
+        to,
+        subject: `💊 Nhắc uống thuốc – ${date} | LifeTrack Tech`,
+        html,
+      });
+      this.logger.log(`Medication reminder email sent to ${to}`);
+    } catch (err: any) {
+      this.logger.error(`Failed to send medication reminder email to ${to}: ${err.message}`);
+      throw err;
+    }
+  }
+
   async sendOtp(to: string, otp: string, type: 'verify' | 'reset' = 'verify'): Promise<void> {
     const subject =
       type === 'verify'

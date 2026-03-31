@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as Consul from 'consul';
+import Consul from 'consul';
 
 @Injectable()
 export class ConsulService implements OnModuleInit, OnModuleDestroy {

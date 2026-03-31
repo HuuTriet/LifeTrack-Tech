@@ -354,6 +354,32 @@ export class AuthService {
     return safe;
   }
 
+  // ── Notification Email OTP ─────────────────────────────────────────────────
+
+  // Separate in-memory store for notification-email OTPs (keyed by email)
+  private notifOtpStore = new Map<string, { otp: string; expiresAt: Date }>();
+
+  async sendNotificationEmailOtp(email: string) {
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
+    this.notifOtpStore.set(email, { otp, expiresAt });
+    await this.mailService.sendOtp(email, otp, 'verify');
+    this.logger.log(`Notification OTP sent to ${email}`);
+    return { message: `Mã xác thực đã được gửi tới ${email}` };
+  }
+
+  async verifyNotificationEmailOtp(email: string, otp: string) {
+    const entry = this.notifOtpStore.get(email);
+    if (!entry) throw new BadRequestException('Mã OTP không tồn tại hoặc đã hết hạn.');
+    if (new Date() > entry.expiresAt) {
+      this.notifOtpStore.delete(email);
+      throw new BadRequestException('Mã OTP đã hết hạn. Vui lòng yêu cầu mã mới.');
+    }
+    if (entry.otp !== otp) throw new BadRequestException('Mã OTP không chính xác.');
+    this.notifOtpStore.delete(email);
+    return { verified: true, email, message: 'Xác thực email thành công!' };
+  }
+
   // ── DEV ONLY: activate account without OTP ─────────────────────────────────
   async devActivate(email: string) {
     if (process.env.NODE_ENV === 'production') {

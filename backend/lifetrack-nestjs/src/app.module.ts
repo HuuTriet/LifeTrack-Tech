@@ -18,6 +18,7 @@ import { UserModule } from './modules/user/user.module';
 import { ReportModule } from './modules/report/report.module';
 import { AppointmentModule } from './modules/appointment/appointment.module';
 import { ActivityModule } from './modules/activity/activity.module';
+import { AiModule } from './modules/ai/ai.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { ActivityModule } from './modules/activity/activity.module';
     ReportModule,
     AppointmentModule,
     ActivityModule,
+    AiModule,
   ],
 })
 export class AppModule {}

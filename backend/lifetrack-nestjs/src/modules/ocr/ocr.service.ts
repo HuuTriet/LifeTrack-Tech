@@ -10,7 +10,7 @@ import { timeout, catchError } from 'rxjs/operators';
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import * as path from 'path';
-import * as FormData from 'form-data';
+import FormData from 'form-data';
 
 import { ConsulService } from '../../consul/consul.service';
 import { OcrPrescriptionResponseDto } from './dto/ocr.dto';

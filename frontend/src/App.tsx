@@ -18,12 +18,13 @@ import HealthTrackingPage from './pages/elderly/HealthTrackingPage';
 import MedicationSchedulePage from './pages/elderly/MedicationSchedulePage';
 import AppointmentPage from './pages/elderly/AppointmentPage';
 import ActivityPage from './pages/elderly/ActivityPage';
-
+import EmailNotificationSettingsPage from './pages/elderly/EmailNotificationSettingsPage';
 // Caregiver Pages
 import CaregiverDashboard from './pages/caregiver/CaregiverDashboard';
 import AddMedicationPage from './pages/caregiver/AddMedicationPage';
 import HealthTrendsPage from './pages/caregiver/HealthTrendsPage';
 import ElderlyProfilePage from './pages/caregiver/ElderlyProfilePage';
+import ElderlyDetailPage from './pages/caregiver/ElderlyDetailPage';
 
 // Shared Pages
 import ProfilePage from './pages/shared/ProfilePage';
@@ -51,7 +52,7 @@ const theme = createTheme({
     text: { primary: '#2C3E50', secondary: '#7A8B99' },
   },
   typography: {
-    fontFamily: "'Public Sans', 'Helvetica Neue', Arial, sans-serif",
+    fontFamily: "'Be Vietnam Pro', 'Helvetica Neue', Arial, sans-serif",
     fontSize: 16,
     h1: { fontWeight: 700 },
     h2: { fontWeight: 700 },
@@ -116,6 +117,7 @@ const AppRoutes: React.FC = () => {
         <Route path="medications" element={<MedicationSchedulePage />} />
         <Route path="appointments" element={<AppointmentPage />} />
         <Route path="activity" element={<ActivityPage />} />
+        <Route path="email-notifications" element={<EmailNotificationSettingsPage />} />
         <Route path="notifications" element={<NotificationsPage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="help" element={<HelpPage />} />
@@ -133,6 +135,7 @@ const AppRoutes: React.FC = () => {
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<CaregiverDashboard />} />
         <Route path="elderly" element={<ElderlyProfilePage />} />
+        <Route path="elderly/:id" element={<ElderlyDetailPage />} />
         <Route path="medications/add" element={<AddMedicationPage />} />
         <Route
           path="health-trends"

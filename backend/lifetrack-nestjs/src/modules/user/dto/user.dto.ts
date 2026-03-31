@@ -4,6 +4,7 @@ import {
   IsEnum,
   IsDateString,
   IsNumber,
+  IsEmail,
   Min,
   Max,
   MaxLength,
@@ -88,9 +89,15 @@ export class UpdateElderlyProfileDto {
 }
 
 export class CreateElderlyProfileDto extends UpdateElderlyProfileDto {
-  @ApiProperty({ description: 'User ID the profile belongs to' })
+  @ApiPropertyOptional({ description: 'User ID the profile belongs to (UUID). Provide either userId or email.' })
+  @IsOptional()
   @IsUUID()
-  userId: string;
+  userId?: string;
+
+  @ApiPropertyOptional({ description: 'Email of the user to link (used if userId not provided)' })
+  @IsOptional()
+  @IsEmail()
+  email?: string;
 }
 
 export class AdminUpdateUserDto {

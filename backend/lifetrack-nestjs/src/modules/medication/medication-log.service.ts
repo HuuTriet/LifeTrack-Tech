@@ -2,12 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
 import { MedicationLog } from '../../entities/medication/medication-log.entity';
+import { Prescription } from '../../entities/medication/prescription.entity';
+import { PrescriptionItem } from '../../entities/medication/prescription-item.entity';
 
 @Injectable()
 export class MedicationLogService {
   constructor(
     @InjectRepository(MedicationLog)
     private readonly repo: Repository<MedicationLog>,
+    @InjectRepository(Prescription)
+    private readonly prescriptionRepo: Repository<Prescription>,
   ) {}
 
   async logTaken(
@@ -19,7 +23,6 @@ export class MedicationLogService {
     recordedBy: string,
     notes?: string,
   ): Promise<MedicationLog> {
-    // Upsert: if log exists update it, otherwise create
     let log = await this.repo.findOne({
       where: { elderlyId, prescriptionItemId, scheduledDate: new Date(scheduledDate), scheduledTime },
     });
@@ -70,11 +73,78 @@ export class MedicationLogService {
     return this.repo.save(newLog);
   }
 
-  async getAdherenceByDate(elderlyId: string, date: string): Promise<MedicationLog[]> {
-    return this.repo.find({
-      where: { elderlyId, scheduledDate: new Date(date) },
+  /**
+   * Returns today's medication schedule by merging:
+   * 1. Existing logs (TAKEN / SKIPPED) stored in the DB
+   * 2. Pending slots derived from active prescriptions that have no log yet
+   */
+  async getAdherenceByDate(elderlyId: string, date: string): Promise<any[]> {
+    const targetDate = new Date(date);
+    const dateStr = date; // YYYY-MM-DD
+
+    // 1. Fetch existing logs for this date
+    const existingLogs = await this.repo.find({
+      where: { elderlyId, scheduledDate: targetDate },
       order: { scheduledTime: 'ASC' },
     });
+
+    const loggedKeys = new Set(
+      existingLogs.map(l => `${l.prescriptionItemId}::${l.scheduledTime}`),
+    );
+
+    // 2. Fetch active prescriptions covering this date
+    const prescriptions = await this.prescriptionRepo.find({
+      where: { elderlyId, status: 'ACTIVE' as any },
+      relations: ['items'],
+    });
+
+    const pendingSlots: any[] = [];
+
+    for (const rx of prescriptions) {
+      const start = rx.startDate ? new Date(rx.startDate) : null;
+      const end = rx.endDate ? new Date(rx.endDate) : null;
+
+      // Check date range
+      if (start && targetDate < new Date(start.toISOString().split('T')[0])) continue;
+      if (end && targetDate > new Date(end.toISOString().split('T')[0])) continue;
+
+      for (const item of (rx.items || []) as PrescriptionItem[]) {
+        if (!item.isActive) continue;
+        const times: string[] = Array.isArray(item.scheduledTimes) ? item.scheduledTimes : [];
+        if (times.length === 0) continue;
+
+        const drugName = item.drugNameRaw || (item as any).drug?.genericName || 'Thuốc';
+
+        for (const time of times) {
+          const key = `${item.id}::${time}`;
+          if (loggedKeys.has(key)) continue; // already has a log
+
+          pendingSlots.push({
+            id: `pending-${item.id}-${time}`,
+            elderlyId,
+            prescriptionItemId: item.id,
+            drugName,
+            scheduledDate: dateStr,
+            scheduledTime: time,
+            status: 'PENDING',
+            takenAt: null,
+            notes: item.instructions || null,
+            recordedBy: null,
+          });
+        }
+      }
+    }
+
+    // 3. Merge: existing logs + pending, sorted by time
+    const all = [
+      ...existingLogs.map(l => ({
+        ...l,
+        scheduledDate: dateStr,
+      })),
+      ...pendingSlots,
+    ].sort((a, b) => (a.scheduledTime > b.scheduledTime ? 1 : -1));
+
+    return all;
   }
 
   async getAdherenceStats(elderlyId: string, days = 30) {

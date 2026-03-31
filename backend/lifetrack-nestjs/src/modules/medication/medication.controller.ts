@@ -10,14 +10,15 @@ import {
   Patch,
   Post,
   Query,
+  Res,
   UseGuards,
 } from '@nestjs/common';
+import * as crypto from 'crypto';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
   ApiBody,
   ApiCreatedResponse,
-  ApiForbiddenResponse,
   ApiNoContentResponse,
   ApiNotFoundResponse,
   ApiOkResponse,
@@ -27,18 +28,98 @@ import {
   ApiTags,
   ApiUnprocessableEntityResponse,
 } from '@nestjs/swagger';
-import { IsDateString, IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsDateString, IsOptional, IsString, IsNumber, Min } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 
 import { MedicationService } from './medication.service';
 import { MedicationLogService } from './medication-log.service';
+import { MailService } from '../mail/mail.service';
 import { CreatePrescriptionDto } from './dto/create-prescription.dto';
 import { UpdatePrescriptionDto } from './dto/update-prescription.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { Public } from '../../common/decorators/public.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { UserRole } from '../../entities/auth/user.entity';
+
+// ─── Self-service medication add DTO (for ELDERLY users) ────────────────────
+
+class SelfAddMedicationItemDto {
+  @ApiProperty({ example: 'Amlodipine' })
+  @IsString()
+  drugName: string;
+
+  @ApiPropertyOptional({ example: 5 })
+  @IsOptional()
+  @IsNumber()
+  @Min(0.001)
+  dosage?: number;
+
+  @ApiPropertyOptional({ example: 'mg' })
+  @IsOptional()
+  @IsString()
+  dosageUnit?: string;
+
+  @ApiProperty({ description: 'Scheduled times HH:mm', example: ['08:00', '20:00'], type: [String] })
+  @IsArray()
+  @IsString({ each: true })
+  scheduledTimes: string[];
+
+  @ApiPropertyOptional({ example: 'AFTER_MEAL' })
+  @IsOptional()
+  @IsString()
+  mealRelation?: string;
+
+  @ApiPropertyOptional({ example: 'Uống với nước lọc' })
+  @IsOptional()
+  @IsString()
+  instructions?: string;
+}
+
+class SelfAddMedicationDto {
+  @ApiProperty({ description: 'Elderly profile ID' })
+  @IsString()
+  elderlyId: string;
+
+  @ApiProperty({ type: [SelfAddMedicationItemDto] })
+  @IsArray()
+  @Type(() => SelfAddMedicationItemDto)
+  items: SelfAddMedicationItemDto[];
+
+  @ApiPropertyOptional({ example: '2026-03-31' })
+  @IsOptional()
+  @IsDateString()
+  startDate?: string;
+
+  @ApiPropertyOptional({ example: '2026-04-30' })
+  @IsOptional()
+  @IsDateString()
+  endDate?: string;
+
+  @ApiPropertyOptional({ example: 'Tự thêm nhắc nhở' })
+  @IsOptional()
+  @IsString()
+  notes?: string;
+}
+
+// ─── DTO for email reminder ──────────────────────────────────────────────────
+
+class SendReminderEmailDto {
+  @ApiProperty({ description: 'Elderly profile ID', format: 'uuid' })
+  @IsString()
+  elderlyId: string;
+
+  @ApiProperty({ description: 'Recipient email address', example: 'patient@example.com' })
+  @IsString()
+  recipientEmail: string;
+
+  @ApiPropertyOptional({ description: 'Patient display name' })
+  @IsOptional()
+  @IsString()
+  patientName?: string;
+}
 
 // ─── Inline DTOs for medication log actions ──────────────────────────────────
 
@@ -69,6 +150,7 @@ export class MedicationController {
   constructor(
     private readonly medicationService: MedicationService,
     private readonly medicationLogService: MedicationLogService,
+    private readonly mailService: MailService,
   ) {}
 
   // ─── Prescription CRUD ────────────────────────────────────────────────────
@@ -154,6 +236,41 @@ export class MedicationController {
     @CurrentUser('id') userId: string,
   ) {
     return this.medicationService.createPrescription(dto, userId);
+  }
+
+  /**
+   * @route   POST /api/v1/medications/self/add
+   * @access  ELDERLY
+   * Self-service: elderly user adds their own medication reminder
+   */
+  @Post('self/add')
+  @Roles(UserRole.ELDERLY)
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Elderly: self-add medication reminder' })
+  async selfAddMedication(
+    @Body() dto: SelfAddMedicationDto,
+    @CurrentUser('id') userId: string,
+  ) {
+    const today = new Date().toISOString().split('T')[0];
+    const prescriptionDto = {
+      elderlyId: dto.elderlyId,
+      doctorName: 'Tự thêm',
+      source: 'MANUAL',
+      startDate: dto.startDate || today,
+      endDate: dto.endDate,
+      notes: dto.notes,
+      items: dto.items.map(item => ({
+        drugNameRaw: item.drugName,
+        dosage: item.dosage,
+        dosageUnit: item.dosageUnit || 'mg',
+        scheduledTimes: item.scheduledTimes,
+        mealRelation: item.mealRelation || 'INDEPENDENT',
+        instructions: item.instructions,
+        isGenericReminder: true,
+        unknownDosage: !item.dosage,
+      })),
+    };
+    return this.medicationService.createPrescription(prescriptionDto as any, userId);
   }
 
   @Get('prescriptions/:id')
@@ -420,5 +537,144 @@ export class MedicationController {
     @Query('days') days = 30,
   ) {
     return this.medicationLogService.getAdherenceStats(elderlyId, +days);
+  }
+
+  // ─── Email Medication Reminder ─────────────────────────────────────────────
+
+  /**
+   * @route  POST /api/v1/medications/reminders/send-email
+   * @access CAREGIVER, ADMIN
+   *
+   * Fetches today's active prescriptions for the given elderly patient,
+   * formats them into an HTML email and sends it to the specified address.
+   */
+  // ── Helpers for signed action tokens ─────────────────────────────────────────
+
+  private signToken(payload: object): string {
+    const secret = process.env.JWT_SECRET || 'lifetrack_jwt_secret';
+    const data = Buffer.from(JSON.stringify(payload)).toString('base64url');
+    const sig = crypto.createHmac('sha256', secret).update(data).digest('base64url');
+    return `${data}.${sig}`;
+  }
+
+  private verifyToken(token: string): any | null {
+    try {
+      const [data, sig] = token.split('.');
+      const secret = process.env.JWT_SECRET || 'lifetrack_jwt_secret';
+      const expected = crypto.createHmac('sha256', secret).update(data).digest('base64url');
+      if (expected !== sig) return null;
+      const payload = JSON.parse(Buffer.from(data, 'base64url').toString());
+      if (payload.exp && Date.now() > payload.exp) return null;
+      return payload;
+    } catch {
+      return null;
+    }
+  }
+
+  @Post('reminders/send-email')
+  @Roles(UserRole.CAREGIVER, UserRole.ADMIN, UserRole.ELDERLY)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Send medication reminder email with action links (taken / snooze)' })
+  @ApiBody({ type: SendReminderEmailDto })
+  @ApiOkResponse({ description: 'Email sent successfully' })
+  async sendReminderEmail(@Body() dto: SendReminderEmailDto) {
+    const today = new Date().toISOString().split('T')[0];
+    const { data: prescriptions } = await this.medicationService.getPrescriptionsByElderly(dto.elderlyId, 1, 50);
+    const baseUrl = process.env.API_BASE_URL || `http://localhost:3001/api/v1`;
+
+    const activePrescriptions = prescriptions.filter(p => p.status === 'ACTIVE');
+    const medications = activePrescriptions.flatMap(p =>
+      p.items.map(item => {
+        const scheduledTime = item.scheduledTimes?.[0] || '08:00';
+        const tokenPayload = {
+          elderlyId: dto.elderlyId,
+          itemId: item.id,
+          recipientEmail: dto.recipientEmail,
+          patientName: dto.patientName || 'Bệnh nhân',
+          drugName: item.drug?.genericName || (item as any).drugNameRaw || 'Thuốc',
+          scheduledDate: today,
+          scheduledTime,
+          exp: Date.now() + 48 * 60 * 60 * 1000, // 48h expiry
+        };
+        const token = this.signToken(tokenPayload);
+        return {
+          drugName: tokenPayload.drugName,
+          dosage: item.dosage ? `${item.dosage} ${item.dosageUnit || 'mg'}` : undefined,
+          scheduledTimes: item.scheduledTimes ?? [],
+          mealRelation: item.mealRelation,
+          instructions: item.instructions,
+          takenUrl: `${baseUrl}/medications/reminders/email-action?token=${token}&action=taken`,
+          snoozeUrl: `${baseUrl}/medications/reminders/email-action?token=${token}&action=snooze`,
+        };
+      }),
+    );
+
+    await this.mailService.sendMedicationReminderEmail(dto.recipientEmail, dto.patientName || 'Bệnh nhân', medications, today);
+    return { message: `Email nhắc thuốc đã được gửi đến ${dto.recipientEmail}` };
+  }
+
+  // ── Public: handle email action link click ────────────────────────────────────
+
+  @Get('reminders/email-action')
+  @Public()
+  @ApiOperation({ summary: 'Handle email action link (taken / snooze) — no auth required' })
+  async handleEmailAction(
+    @Query('token') token: string,
+    @Query('action') action: string,
+    @Res() res: any,
+  ) {
+    const payload = this.verifyToken(token);
+
+    const htmlPage = (icon: string, title: string, message: string, color: string) => `
+      <!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+      <title>${title} – LifeTrack Tech</title>
+      <style>body{font-family:Arial,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f8fafc;}
+      .card{background:#fff;border-radius:20px;padding:40px 36px;max-width:420px;width:90%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.1);}
+      .icon{font-size:56px;margin-bottom:16px;} h2{color:${color};margin:0 0 12px;} p{color:#475569;font-size:15px;line-height:1.6;margin:0;}</style>
+      </head><body><div class="card"><div class="icon">${icon}</div><h2>${title}</h2><p>${message}</p></div></body></html>`;
+
+    if (!payload) {
+      (res as any).status(400).send(htmlPage('❌', 'Liên kết không hợp lệ', 'Liên kết đã hết hạn hoặc không hợp lệ. Vui lòng liên hệ người chăm sóc.', '#E76F51'));
+      return;
+    }
+
+    try {
+      if (action === 'taken') {
+        await this.medicationLogService.logTaken(
+          payload.elderlyId,
+          payload.itemId,
+          payload.drugName,
+          payload.scheduledDate,
+          payload.scheduledTime,
+          payload.elderlyId,
+        );
+        (res as any).send(htmlPage('✅', 'Đã ghi nhận!',
+          `Bạn đã uống <strong>${payload.drugName}</strong> lúc ${payload.scheduledTime}.<br><br>Cảm ơn bạn đã tuân thủ lịch uống thuốc. Hãy tiếp tục duy trì nhé! 💪`,
+          '#52B788'));
+      } else if (action === 'snooze') {
+        // Send another reminder email in ~30 min (we send immediately with a note)
+        const snoozePayload = { ...payload, exp: Date.now() + 48 * 60 * 60 * 1000 };
+        const newToken = this.signToken(snoozePayload);
+        const baseUrl = process.env.API_BASE_URL || 'http://localhost:3001/api/v1';
+        await this.mailService.sendMedicationReminderEmail(
+          payload.recipientEmail,
+          payload.patientName,
+          [{
+            drugName: payload.drugName,
+            scheduledTimes: [payload.scheduledTime],
+            takenUrl: `${baseUrl}/medications/reminders/email-action?token=${newToken}&action=taken`,
+            snoozeUrl: `${baseUrl}/medications/reminders/email-action?token=${newToken}&action=snooze`,
+          }],
+          payload.scheduledDate,
+        );
+        (res as any).send(htmlPage('🔔', 'Đã nhắc lại!',
+          `Chúng tôi đã gửi lại nhắc nhở uống <strong>${payload.drugName}</strong> vào email của bạn.<br><br>Hãy uống thuốc đúng giờ để bảo vệ sức khoẻ!`,
+          '#4A8FB8'));
+      } else {
+        (res as any).status(400).send(htmlPage('❓', 'Hành động không hợp lệ', 'Yêu cầu không được nhận dạng.', '#94A3B8'));
+      }
+    } catch {
+      (res as any).status(500).send(htmlPage('⚠️', 'Có lỗi xảy ra', 'Không thể xử lý yêu cầu. Vui lòng thử lại hoặc liên hệ người chăm sóc.', '#E76F51'));
+    }
   }
 }
